@@ -786,10 +786,24 @@
 
         #pdf-export-container {
             width: 210mm;
-            padding: 12mm;
             background: white;
             color: black;
             font-family: 'IBM Plex Sans Thai', sans-serif;
+        }
+
+        /* ===== PDF PAGE STYLES ===== */
+        .pdf-page {
+            width: 210mm;
+            padding: 12mm;
+            background: white;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        /* Remove page break after the very last page */
+        .pdf-page:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
         }
 
         .pdf-title {
@@ -804,8 +818,17 @@
             font-size: 11px;
             text-align: center;
             color: #888;
-            margin-bottom: 20px;
+            margin-bottom: 4px;
             font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .pdf-page-num {
+            font-size: 10px;
+            text-align: center;
+            color: #bbb;
+            margin-bottom: 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            letter-spacing: 0.08em;
         }
 
         .pdf-grid {
@@ -818,7 +841,9 @@
             border: 1px solid #E0DDD8;
             border-radius: 8px;
             overflow: hidden;
+            /* Prevent individual items from breaking across pages */
             page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .pdf-item-img-row {
@@ -993,7 +1018,9 @@
 
     <div class="toast" id="toast"></div>
 
-</div><div class="modal-overlay" id="exportModal" onclick="closeExportOnOverlay(event)">
+</div>
+
+<div class="modal-overlay" id="exportModal" onclick="closeExportOnOverlay(event)">
     <div class="modal-sheet">
         <div class="modal-header">
             <span class="modal-title">ส่งออกรายงาน</span>
@@ -1031,11 +1058,7 @@
 </div>
 
 <div class="hidden-pdf-wrap">
-    <div id="pdf-export-container">
-        <div class="pdf-title">Defect Report</div>
-        <div class="pdf-subtitle" id="pdfSubtitle">Generated —</div>
-        <div class="pdf-grid" id="pdf-grid-container"></div>
-    </div>
+    <div id="pdf-export-container"></div>
 </div>
 
 <script>
@@ -1043,6 +1066,8 @@
     let currentImageDataURL = null;
     let selectedTeam = null;
     let isCustomTeam = false;
+
+    const ITEMS_PER_PAGE = 6; // 6 items per PDF page (3 rows × 2 columns)
 
     // TEAM SELECTION
     function selectTeam(el, value) {
@@ -1233,15 +1258,27 @@
         if (e.target === document.getElementById('exportModal')) closeExportModal();
     }
 
-    // PDF EXPORT
+    // PDF EXPORT — builds one .pdf-page per 6 items
     function buildPDFTemplate() {
-        const grid = document.getElementById('pdf-grid-container');
-        grid.innerHTML = '';
-        const now = new Date();
-        document.getElementById('pdfSubtitle').textContent = `Generated ${now.toLocaleDateString('th-TH')} — ${defectsData.length} items`;
+        const container = document.getElementById('pdf-export-container');
+        container.innerHTML = '';
 
-        defectsData.forEach(d => {
-            grid.innerHTML += `
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('th-TH');
+        const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
+
+        // Chunk data into pages of 6
+        for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+            const pageItems = defectsData.slice(
+                pageIdx * ITEMS_PER_PAGE,
+                (pageIdx + 1) * ITEMS_PER_PAGE
+            );
+
+            const pageNum = pageIdx + 1;
+            const isLastPage = pageIdx === totalPages - 1;
+
+            // Build items HTML for this page
+            const itemsHTML = pageItems.map(d => `
                 <div class="pdf-item">
                     <div class="pdf-item-img-row">
                         <div class="pdf-item-num">${d.id}</div>
@@ -1253,8 +1290,25 @@
                         <tr><td>Detail</td><td>${d.details}${d.remarks ? ` — ${d.remarks}` : ''}</td></tr>
                     </table>
                 </div>
+            `).join('');
+
+            // Build page element
+            const page = document.createElement('div');
+            page.className = 'pdf-page';
+            // Force page break on all pages except the last
+            if (!isLastPage) {
+                page.style.pageBreakAfter = 'always';
+            }
+
+            page.innerHTML = `
+                <div class="pdf-title">Defect Report</div>
+                <div class="pdf-subtitle">Generated ${dateStr} — ${defectsData.length} items total</div>
+                <div class="pdf-page-num">PAGE ${pageNum} / ${totalPages}</div>
+                <div class="pdf-grid">${itemsHTML}</div>
             `;
-        });
+
+            container.appendChild(page);
+        }
     }
 
     function exportPDF() {
@@ -1267,11 +1321,12 @@
         setTimeout(() => {
             const element = document.getElementById('pdf-export-container');
             const opt = {
-                margin:       10,
+                margin:       0,
                 filename:     `Defect_Report_${Date.now()}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'], before: '.pdf-page' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
@@ -1282,7 +1337,7 @@
                 document.getElementById('loadingOverlay').classList.remove('show');
                 showToast('❌ เกิดข้อผิดพลาด');
             });
-        }, 500); 
+        }, 500);
     }
 
     // EXCEL EXPORT (EXCELJS)
@@ -1300,7 +1355,7 @@
 
             sheet.columns = [
                 { header: 'ลำดับ', key: 'id', width: 8 },
-                { header: 'รูปภาพ Defect', key: 'image', width: 35 }, 
+                { header: 'รูปภาพ Defect', key: 'image', width: 35 },
                 { header: 'Zone (ตำแหน่ง)', key: 'location', width: 25 },
                 { header: 'หมวดงาน', key: 'team', width: 20 },
                 { header: 'รายการ', key: 'details', width: 45 },
@@ -1309,16 +1364,16 @@
             ];
 
             const headerRow = sheet.getRow(1);
-            headerRow.height = 30; 
+            headerRow.height = 30;
             headerRow.font = { name: 'Sarabun', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-            headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1916' } }; 
+            headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1916' } };
             headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
             defectsData.forEach((d, index) => {
-                const rowIndex = index + 2; 
+                const rowIndex = index + 2;
                 const row = sheet.getRow(rowIndex);
 
-                row.height = 110; 
+                row.height = 110;
 
                 row.getCell('A').value = d.id;
                 row.getCell('C').value = d.location;
@@ -1342,8 +1397,8 @@
                     });
 
                     sheet.addImage(imageId, {
-                        tl: { col: 1.1, row: rowIndex - 1 + 0.1 }, 
-                        ext: { width: 220, height: 125 }, 
+                        tl: { col: 1.1, row: rowIndex - 1 + 0.1 },
+                        ext: { width: 220, height: 125 },
                         editAs: 'oneCell'
                     });
                 }
