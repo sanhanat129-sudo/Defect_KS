@@ -1043,56 +1043,25 @@
     }
 
     // ============================================================
-    // PDF EXPORT — pure jsPDF, no html2canvas, works on mobile
-    // Draws everything directly onto PDF canvas
+    // PDF EXPORT — pure jsPDF, fixed card sizes, editable fields
     // ============================================================
 
-    // Load a base64 dataURL into an HTMLImageElement, returns Promise<HTMLImageElement>
     function loadImage(dataURL) {
         return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload  = () => resolve(img);
-            img.onerror = () => reject(new Error('Image load failed'));
+            img.onerror = () => reject(new Error('fail'));
             img.src = dataURL;
         });
     }
 
-    // Draw image cropped to fill a rect (cover behaviour) onto a canvas context
     function drawImageCover(ctx, img, x, y, w, h) {
-        const imgRatio  = img.width / img.height;
-        const boxRatio  = w / h;
+        const iR = img.width / img.height;
+        const bR = w / h;
         let sx, sy, sw, sh;
-        if (imgRatio > boxRatio) {
-            sh = img.height;
-            sw = img.height * boxRatio;
-            sx = (img.width - sw) / 2;
-            sy = 0;
-        } else {
-            sw = img.width;
-            sh = img.width / boxRatio;
-            sx = 0;
-            sy = (img.height - sh) / 2;
-        }
+        if (iR > bR) { sh = img.height; sw = sh * bR; sx = (img.width - sw) / 2; sy = 0; }
+        else          { sw = img.width;  sh = sw / bR; sx = 0; sy = (img.height - sh) / 2; }
         ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-    }
-
-    // Wrap text to fit within maxWidth, return array of lines
-    function wrapText(pdf, text, maxWidth, fontSize) {
-        pdf.setFontSize(fontSize);
-        const words = String(text).split(' ');
-        const lines = [];
-        let line = '';
-        for (const word of words) {
-            const test = line ? line + ' ' + word : word;
-            if (pdf.getTextWidth(test) > maxWidth && line) {
-                lines.push(line);
-                line = word;
-            } else {
-                line = test;
-            }
-        }
-        if (line) lines.push(line);
-        return lines;
     }
 
     async function exportPDF() {
@@ -1103,17 +1072,29 @@
 
         try {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
-            // A4: 210 × 297 mm
+            // ── Layout constants (mm) ──
             const PW = 210, PH = 297;
-            const margin = 14;
-            const colGap = 5;
-            const colW = (PW - margin * 2 - colGap) / 2;  // ~83.5 mm each
+            const MARGIN   = 12;
+            const COL_GAP  = 5;
+            const COL_W    = (PW - MARGIN * 2 - COL_GAP) / 2;  // 86.5 mm
+
+            // Fixed card — same size always
+            const CARD_H   = 72;
+            const IMG_H    = 43;
+            const NUM_W    = 8;
+            const TBL_H    = CARD_H - IMG_H;   // 29 mm
+            const ROW_H    = TBL_H / 3;        // ~9.67 mm per row
+            const LABEL_W  = COL_W * 0.27;
+            const CARD_GAP = 5;
+            const HEADER_H = 22;               // reserved for page header
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('th-TH');
             const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
+
+            // Build PDF page by page
+            const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
             for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
                 if (pageIdx > 0) pdf.addPage();
@@ -1124,148 +1105,160 @@
                 );
 
                 // ── Header ──
-                let curY = margin;
+                let hy = MARGIN;
 
-                // Company (small, muted)
                 pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(7);
-                pdf.setTextColor(180, 180, 180);
-                pdf.text('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW / 2, curY, { align: 'center' });
-                curY += 5;
+                pdf.setFontSize(6.5);
+                pdf.setTextColor(185, 183, 180);
+                pdf.text('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW / 2, hy, { align: 'center' });
+                hy += 5;
 
-                // Title
                 pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(16);
+                pdf.setFontSize(15);
                 pdf.setTextColor(26, 25, 22);
-                pdf.text('Defect Report', PW / 2, curY, { align: 'center' });
-                curY += 5;
+                pdf.text('Defect Report', PW / 2, hy, { align: 'center' });
+                hy += 5;
 
-                // Subtitle
                 pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(8);
-                pdf.setTextColor(150, 150, 150);
-                pdf.text(`Generated ${dateStr}  —  ${defectsData.length} items total`, PW / 2, curY, { align: 'center' });
-                curY += 4;
+                pdf.setFontSize(7.5);
+                pdf.setTextColor(155, 155, 155);
+                pdf.text(`Generated ${dateStr}  —  ${defectsData.length} items total`, PW / 2, hy, { align: 'center' });
+                hy += 3.5;
 
-                // Page number
-                pdf.setFontSize(7);
-                pdf.setTextColor(190, 190, 190);
-                pdf.text(`PAGE ${pageIdx + 1} / ${totalPages}`, PW / 2, curY, { align: 'center' });
-                curY += 6;
+                pdf.setFontSize(6.5);
+                pdf.setTextColor(195, 195, 195);
+                pdf.text(`PAGE ${pageIdx + 1} / ${totalPages}`, PW / 2, hy, { align: 'center' });
+                hy += 5.5;
 
-                // ── Grid (2 columns, up to 3 rows) ──
-                const ITEMS_PER_ROW = 2;
-                const rows = Math.ceil(pageItems.length / ITEMS_PER_ROW);
+                const gridTop = hy;
 
-                // Available height for the grid
-                const gridH = PH - curY - margin;
-                const rowGap = 4;
-                const rowH = (gridH - rowGap * (rows - 1)) / rows;
+                // ── Draw each card ──
+                for (let i = 0; i < pageItems.length; i++) {
+                    const d = pageItems[i];
+                    const col = i % 2;
+                    const row = Math.floor(i / 2);
 
-                // Image height = 55% of row, table = rest
-                const imgH = rowH * 0.55;
-                const tblH = rowH - imgH;
-                const numW = 8; // left number strip width
+                    const cx = MARGIN + col * (COL_W + COL_GAP);
+                    const cy = gridTop + row * (CARD_H + CARD_GAP);
 
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < ITEMS_PER_ROW; c++) {
-                        const idx = r * ITEMS_PER_ROW + c;
-                        if (idx >= pageItems.length) break;
-                        const d = pageItems[idx];
+                    // Card border
+                    pdf.setDrawColor(215, 212, 207);
+                    pdf.setLineWidth(0.3);
+                    pdf.roundedRect(cx, cy, COL_W, CARD_H, 2, 2, 'S');
 
-                        const x = margin + c * (colW + colGap);
-                        const y = curY + r * (rowH + rowGap);
+                    // Number strip
+                    pdf.setFillColor(26, 25, 22);
+                    pdf.rect(cx, cy, NUM_W, IMG_H, 'F');
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.text(String(d.id), cx + NUM_W / 2, cy + IMG_H / 2 + 1.5, { align: 'center' });
 
-                        // Card border
-                        pdf.setDrawColor(220, 218, 214);
-                        pdf.setLineWidth(0.3);
-                        pdf.roundedRect(x, y, colW, rowH, 2, 2, 'S');
+                    // Photo
+                    const imgX = cx + NUM_W;
+                    const imgW = COL_W - NUM_W;
+                    if (d.image) {
+                        try {
+                            const img = await loadImage(d.image);
+                            const cvs = document.createElement('canvas');
+                            cvs.width  = Math.round(imgW * 2 * 3.78);
+                            cvs.height = Math.round(IMG_H * 2 * 3.78);
+                            drawImageCover(cvs.getContext('2d'), img, 0, 0, cvs.width, cvs.height);
+                            pdf.addImage(cvs.toDataURL('image/jpeg', 0.85), 'JPEG', imgX, cy, imgW, IMG_H);
+                        } catch (_) {
+                            pdf.setFillColor(235, 235, 235);
+                            pdf.rect(imgX, cy, imgW, IMG_H, 'F');
+                        }
+                    }
 
-                        // Number strip (black background)
-                        pdf.setFillColor(26, 25, 22);
-                        // Clip to rounded rect left side — approximate with plain rect
-                        pdf.rect(x, y, numW, imgH, 'F');
+                    // Divider
+                    pdf.setDrawColor(215, 212, 207);
+                    pdf.setLineWidth(0.3);
+                    pdf.line(cx, cy + IMG_H, cx + COL_W, cy + IMG_H);
 
-                        // Number text
-                        pdf.setFont('helvetica', 'bold');
-                        pdf.setFontSize(10);
-                        pdf.setTextColor(255, 255, 255);
-                        pdf.text(String(d.id), x + numW / 2, y + imgH / 2 + 1.5, { align: 'center' });
+                    // Three data rows — fixed height
+                    const fields = [
+                        { label: 'ZONE',   value: d.location },
+                        { label: 'TEAM',   value: d.team },
+                        { label: 'DETAIL', value: d.details + (d.remarks ? '  ' + d.remarks : '') }
+                    ];
 
-                        // Image
-                        if (d.image) {
-                            try {
-                                const img = await loadImage(d.image);
-                                // Crop to cover using an off-screen canvas
-                                const imgX = x + numW;
-                                const imgW = colW - numW;
-                                const cvs = document.createElement('canvas');
-                                const scale = 2;
-                                cvs.width  = Math.round(imgW * scale * 3.78); // mm → px at 96dpi approx
-                                cvs.height = Math.round(imgH * scale * 3.78);
-                                const ctx = cvs.getContext('2d');
-                                drawImageCover(ctx, img, 0, 0, cvs.width, cvs.height);
-                                const jpegData = cvs.toDataURL('image/jpeg', 0.85);
-                                pdf.addImage(jpegData, 'JPEG', imgX, y, imgW, imgH);
-                            } catch(e) {
-                                // If image fails, just leave blank
-                                pdf.setFillColor(240, 240, 240);
-                                pdf.rect(x + numW, y, colW - numW, imgH, 'F');
-                            }
+                    fields.forEach((f, fi) => {
+                        const ry = cy + IMG_H + fi * ROW_H;
+
+                        // Row divider
+                        if (fi > 0) {
+                            pdf.setDrawColor(228, 225, 220);
+                            pdf.setLineWidth(0.2);
+                            pdf.line(cx, ry, cx + COL_W, ry);
                         }
 
-                        // Divider line between image and table
-                        pdf.setDrawColor(220, 218, 214);
-                        pdf.setLineWidth(0.3);
-                        pdf.line(x, y + imgH, x + colW, y + imgH);
+                        // Label | value divider
+                        pdf.setDrawColor(228, 225, 220);
+                        pdf.setLineWidth(0.2);
+                        pdf.line(cx + LABEL_W, ry, cx + LABEL_W, ry + ROW_H);
 
-                        // Table rows
-                        const rows_data = [
-                            ['ZONE', d.location],
-                            ['TEAM', d.team],
-                            ['DETAIL', d.details + (d.remarks ? ' — ' + d.remarks : '')]
-                        ];
+                        // Label text (static)
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(5.5);
+                        pdf.setTextColor(165, 162, 157);
+                        pdf.text(f.label, cx + 2, ry + ROW_H / 2 + 0.6, { baseline: 'middle' });
 
-                        const labelW  = colW * 0.28;
-                        const valueW  = colW - labelW - 4;
-                        const rowPad  = 2;
-                        const tblRowH = tblH / rows_data.length;
-                        let ty = y + imgH;
+                        // ── Editable field area ──
+                        // Draw a subtle highlight rect so user knows it's editable
+                        const fx = cx + LABEL_W + 0.8;
+                        const fy = ry + 0.8;
+                        const fw = COL_W - LABEL_W - 1.6;
+                        const fh = ROW_H - 1.6;
 
-                        rows_data.forEach((row, ri) => {
-                            const rowY = ty + ri * tblRowH;
+                        // Light blue tint to show editability
+                        pdf.setFillColor(248, 250, 255);
+                        pdf.rect(fx, fy, fw, fh, 'F');
 
-                            // Row divider (except first)
-                            if (ri > 0) {
-                                pdf.setDrawColor(232, 230, 225);
-                                pdf.setLineWidth(0.2);
-                                pdf.line(x, rowY, x + colW, rowY);
+                        // Pre-filled value text — selectable in PDF
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(6.8);
+                        pdf.setTextColor(26, 25, 22);
+
+                        // Clip long text to one line (DETAIL can be 2 lines)
+                        const maxW = fw - 1.5;
+                        const fullText = String(f.value);
+
+                        if (fi === 2) {
+                            // DETAIL: allow 2 lines
+                            const words = fullText.split(/\s+/);
+                            let line1 = '', line2 = '';
+                            let onLine2 = false;
+                            for (const w of words) {
+                                const test1 = line1 ? line1 + ' ' + w : w;
+                                if (!onLine2 && pdf.getTextWidth(test1) <= maxW) {
+                                    line1 = test1;
+                                } else {
+                                    onLine2 = true;
+                                    const test2 = line2 ? line2 + ' ' + w : w;
+                                    if (pdf.getTextWidth(test2) <= maxW) line2 = test2;
+                                    else {
+                                        // truncate
+                                        while (pdf.getTextWidth(line2 + '…') > maxW && line2.length > 0)
+                                            line2 = line2.slice(0, -1);
+                                        line2 += '…';
+                                        break;
+                                    }
+                                }
                             }
-
-                            // Label col divider
-                            pdf.setDrawColor(232, 230, 225);
-                            pdf.setLineWidth(0.2);
-                            pdf.line(x + labelW, rowY, x + labelW, rowY + tblRowH);
-
-                            // Label text
-                            pdf.setFont('helvetica', 'normal');
-                            pdf.setFontSize(6);
-                            pdf.setTextColor(160, 160, 160);
-                            pdf.text(row[0], x + rowPad, rowY + tblRowH / 2 + 1, { baseline: 'middle' });
-
-                            // Value text (wrap if needed)
-                            pdf.setFont('helvetica', 'normal');
-                            pdf.setFontSize(7.5);
-                            pdf.setTextColor(26, 25, 22);
-                            const lines = wrapText(pdf, row[1], valueW, 7.5);
-                            const lineH = 3.2;
-                            const totalTH = lines.length * lineH;
-                            const startY = rowY + (tblRowH - totalTH) / 2 + lineH * 0.8;
-                            lines.slice(0, Math.floor(tblRowH / lineH)).forEach((ln, li) => {
-                                pdf.text(ln, x + labelW + rowPad, startY + li * lineH);
-                            });
-                        });
-                    }
+                            const lineH = 3.1;
+                            const startY = fy + (fh - (line2 ? lineH * 2 : lineH)) / 2 + lineH * 0.75;
+                            pdf.text(line1, fx + 1, startY);
+                            if (line2) pdf.text(line2, fx + 1, startY + lineH);
+                        } else {
+                            // ZONE / TEAM: single line, truncate if needed
+                            let display = fullText;
+                            while (display.length > 1 && pdf.getTextWidth(display) > maxW)
+                                display = display.slice(0, -1);
+                            if (display !== fullText) display = display.slice(0, -1) + '…';
+                            pdf.text(display, fx + 1, fy + fh / 2 + 0.8, { baseline: 'middle' });
+                        }
+                    });
                 }
             }
 
