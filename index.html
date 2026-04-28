@@ -6,7 +6,7 @@
     <title>Defect Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
@@ -687,139 +687,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* PDF Export Container — hidden but renderable on mobile */
-        .hidden-pdf-wrap {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 794px;
-            visibility: hidden;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        #pdf-export-container {
-            width: 794px;
-            background: white;
-            font-family: 'IBM Plex Sans Thai', sans-serif;
-        }
-
-        .pdf-page {
-            width: 794px;
-            padding: 40px 44px;
-            background: white;
-        }
-
-        .pdf-company {
-            font-size: 9px;
-            font-weight: 400;
-            text-align: center;
-            color: #C0BDBA;
-            letter-spacing: 0.10em;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-
-        .pdf-title {
-            font-size: 20px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 4px;
-            letter-spacing: -0.02em;
-            color: #1A1916;
-        }
-
-        .pdf-subtitle {
-            font-size: 11px;
-            text-align: center;
-            color: #999;
-            margin-bottom: 4px;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-
-        .pdf-page-num {
-            font-size: 10px;
-            text-align: center;
-            color: #bbb;
-            margin-bottom: 20px;
-            font-family: 'IBM Plex Mono', monospace;
-            letter-spacing: 0.08em;
-        }
-
-        .pdf-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .pdf-item {
-            border: 1px solid #E0DDD8;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .pdf-item-img-row {
-            display: flex;
-            height: 160px;
-            overflow: hidden;
-        }
-
-        .pdf-item-num {
-            width: 36px;
-            background: #1A1916;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .pdf-item-img {
-            flex: 1;
-            overflow: hidden;
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-        }
-
-        .pdf-item-table {
-            width: 100%;
-            border-collapse: collapse;
-            border-top: 1px solid #E0DDD8;
-        }
-
-        .pdf-item-table tr + tr td {
-            border-top: 1px solid #E8E6E1;
-        }
-
-        .pdf-item-table td {
-            padding: 6px 10px;
-            font-size: 12px;
-            vertical-align: top;
-            color: #1A1916;
-        }
-
-        .pdf-item-table td:first-child {
-            width: 28%;
-            color: #999;
-            font-size: 10px;
-            font-family: 'IBM Plex Mono', monospace;
-            border-right: 1px solid #E8E6E1;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .pdf-page-break {
-            page-break-before: always;
-            break-before: page;
-            height: 0;
-            margin: 0;
-            padding: 0;
-            border: none;
-        }
     </style>
 </head>
 <body>
@@ -976,10 +843,6 @@
     <div class="spinner"></div>
     <div class="loading-text">กำลังสร้างไฟล์...</div>
     <div class="loading-sub">กรุณารอสักครู่</div>
-</div>
-
-<div class="hidden-pdf-wrap">
-    <div id="pdf-export-container"></div>
 </div>
 
 <script>
@@ -1179,108 +1042,242 @@
         if (e.target === document.getElementById('exportModal')) closeExportModal();
     }
 
-    // PDF EXPORT
-    function buildPDFTemplate() {
-        const container = document.getElementById('pdf-export-container');
-        container.innerHTML = '';
+    // ============================================================
+    // PDF EXPORT — pure jsPDF, no html2canvas, works on mobile
+    // Draws everything directly onto PDF canvas
+    // ============================================================
 
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('th-TH');
-        const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
-
-        for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-            if (pageIdx > 0) {
-                const breakDiv = document.createElement('div');
-                breakDiv.className = 'pdf-page-break';
-                container.appendChild(breakDiv);
-            }
-
-            const pageItems = defectsData.slice(
-                pageIdx * ITEMS_PER_PAGE,
-                (pageIdx + 1) * ITEMS_PER_PAGE
-            );
-
-            const itemsHTML = pageItems.map(d => `
-                <div class="pdf-item">
-                    <div class="pdf-item-img-row">
-                        <div class="pdf-item-num">${d.id}</div>
-                        <div class="pdf-item-img" style="background-image: url('${d.image}');"></div>
-                    </div>
-                    <table class="pdf-item-table">
-                        <tr><td>Zone</td><td>${d.location}</td></tr>
-                        <tr><td>Team</td><td>${d.team}</td></tr>
-                        <tr><td>Detail</td><td>${d.details}${d.remarks ? ` — ${d.remarks}` : ''}</td></tr>
-                    </table>
-                </div>
-            `).join('');
-
-            const page = document.createElement('div');
-            page.className = 'pdf-page';
-            page.innerHTML = `
-                <div class="pdf-company">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
-                <div class="pdf-title">Defect Report</div>
-                <div class="pdf-subtitle">Generated ${dateStr} — ${defectsData.length} items total</div>
-                <div class="pdf-page-num">PAGE ${pageIdx + 1} / ${totalPages}</div>
-                <div class="pdf-grid">${itemsHTML}</div>
-            `;
-
-            container.appendChild(page);
-        }
+    // Load a base64 dataURL into an HTMLImageElement, returns Promise<HTMLImageElement>
+    function loadImage(dataURL) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload  = () => resolve(img);
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = dataURL;
+        });
     }
 
-    function exportPDF() {
+    // Draw image cropped to fill a rect (cover behaviour) onto a canvas context
+    function drawImageCover(ctx, img, x, y, w, h) {
+        const imgRatio  = img.width / img.height;
+        const boxRatio  = w / h;
+        let sx, sy, sw, sh;
+        if (imgRatio > boxRatio) {
+            sh = img.height;
+            sw = img.height * boxRatio;
+            sx = (img.width - sw) / 2;
+            sy = 0;
+        } else {
+            sw = img.width;
+            sh = img.width / boxRatio;
+            sx = 0;
+            sy = (img.height - sh) / 2;
+        }
+        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+    }
+
+    // Wrap text to fit within maxWidth, return array of lines
+    function wrapText(pdf, text, maxWidth, fontSize) {
+        pdf.setFontSize(fontSize);
+        const words = String(text).split(' ');
+        const lines = [];
+        let line = '';
+        for (const word of words) {
+            const test = line ? line + ' ' + word : word;
+            if (pdf.getTextWidth(test) > maxWidth && line) {
+                lines.push(line);
+                line = word;
+            } else {
+                line = test;
+            }
+        }
+        if (line) lines.push(line);
+        return lines;
+    }
+
+    async function exportPDF() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
 
         document.getElementById('loadingOverlay').classList.add('show');
-        buildPDFTemplate();
 
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        // Give mobile more time to paint DOM + decode background-images
-        const delay = isMobile ? 1200 : 600;
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
-        setTimeout(async () => {
-            try {
-                const element = document.getElementById('pdf-export-container');
+            // A4: 210 × 297 mm
+            const PW = 210, PH = 297;
+            const margin = 14;
+            const colGap = 5;
+            const colW = (PW - margin * 2 - colGap) / 2;  // ~83.5 mm each
 
-                const opt = {
-                    margin:      0,
-                    filename:    `Defect_Report_${Date.now()}.pdf`,
-                    image:       { type: 'jpeg', quality: isMobile ? 0.80 : 0.92 },
-                    html2canvas: {
-                        scale:       isMobile ? 1.2 : 2,
-                        useCORS:     true,
-                        allowTaint:  true,
-                        logging:     false,
-                        windowWidth: 794,
-                        scrollX:     0,
-                        scrollY:     0,
-                        onclone: (clonedDoc) => {
-                            // Make cloned wrapper visible so html2canvas can measure it
-                            const wrap = clonedDoc.querySelector('.hidden-pdf-wrap');
-                            if (wrap) {
-                                wrap.style.visibility = 'visible';
-                                wrap.style.position   = 'absolute';
-                                wrap.style.top        = '0';
-                                wrap.style.left       = '0';
-                                wrap.style.zIndex     = '0';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('th-TH');
+            const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
+
+            for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+                if (pageIdx > 0) pdf.addPage();
+
+                const pageItems = defectsData.slice(
+                    pageIdx * ITEMS_PER_PAGE,
+                    (pageIdx + 1) * ITEMS_PER_PAGE
+                );
+
+                // ── Header ──
+                let curY = margin;
+
+                // Company (small, muted)
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7);
+                pdf.setTextColor(180, 180, 180);
+                pdf.text('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW / 2, curY, { align: 'center' });
+                curY += 5;
+
+                // Title
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(16);
+                pdf.setTextColor(26, 25, 22);
+                pdf.text('Defect Report', PW / 2, curY, { align: 'center' });
+                curY += 5;
+
+                // Subtitle
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(8);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text(`Generated ${dateStr}  —  ${defectsData.length} items total`, PW / 2, curY, { align: 'center' });
+                curY += 4;
+
+                // Page number
+                pdf.setFontSize(7);
+                pdf.setTextColor(190, 190, 190);
+                pdf.text(`PAGE ${pageIdx + 1} / ${totalPages}`, PW / 2, curY, { align: 'center' });
+                curY += 6;
+
+                // ── Grid (2 columns, up to 3 rows) ──
+                const ITEMS_PER_ROW = 2;
+                const rows = Math.ceil(pageItems.length / ITEMS_PER_ROW);
+
+                // Available height for the grid
+                const gridH = PH - curY - margin;
+                const rowGap = 4;
+                const rowH = (gridH - rowGap * (rows - 1)) / rows;
+
+                // Image height = 55% of row, table = rest
+                const imgH = rowH * 0.55;
+                const tblH = rowH - imgH;
+                const numW = 8; // left number strip width
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < ITEMS_PER_ROW; c++) {
+                        const idx = r * ITEMS_PER_ROW + c;
+                        if (idx >= pageItems.length) break;
+                        const d = pageItems[idx];
+
+                        const x = margin + c * (colW + colGap);
+                        const y = curY + r * (rowH + rowGap);
+
+                        // Card border
+                        pdf.setDrawColor(220, 218, 214);
+                        pdf.setLineWidth(0.3);
+                        pdf.roundedRect(x, y, colW, rowH, 2, 2, 'S');
+
+                        // Number strip (black background)
+                        pdf.setFillColor(26, 25, 22);
+                        // Clip to rounded rect left side — approximate with plain rect
+                        pdf.rect(x, y, numW, imgH, 'F');
+
+                        // Number text
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.text(String(d.id), x + numW / 2, y + imgH / 2 + 1.5, { align: 'center' });
+
+                        // Image
+                        if (d.image) {
+                            try {
+                                const img = await loadImage(d.image);
+                                // Crop to cover using an off-screen canvas
+                                const imgX = x + numW;
+                                const imgW = colW - numW;
+                                const cvs = document.createElement('canvas');
+                                const scale = 2;
+                                cvs.width  = Math.round(imgW * scale * 3.78); // mm → px at 96dpi approx
+                                cvs.height = Math.round(imgH * scale * 3.78);
+                                const ctx = cvs.getContext('2d');
+                                drawImageCover(ctx, img, 0, 0, cvs.width, cvs.height);
+                                const jpegData = cvs.toDataURL('image/jpeg', 0.85);
+                                pdf.addImage(jpegData, 'JPEG', imgX, y, imgW, imgH);
+                            } catch(e) {
+                                // If image fails, just leave blank
+                                pdf.setFillColor(240, 240, 240);
+                                pdf.rect(x + numW, y, colW - numW, imgH, 'F');
                             }
                         }
-                    },
-                    jsPDF:     { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['css'], before: '.pdf-page-break' }
-                };
 
-                await html2pdf().set(opt).from(element).save();
-                document.getElementById('loadingOverlay').classList.remove('show');
-                showToast('✓ ดาวน์โหลด PDF สำเร็จ');
+                        // Divider line between image and table
+                        pdf.setDrawColor(220, 218, 214);
+                        pdf.setLineWidth(0.3);
+                        pdf.line(x, y + imgH, x + colW, y + imgH);
 
-            } catch (err) {
-                console.error('PDF export error:', err);
-                document.getElementById('loadingOverlay').classList.remove('show');
-                showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+                        // Table rows
+                        const rows_data = [
+                            ['ZONE', d.location],
+                            ['TEAM', d.team],
+                            ['DETAIL', d.details + (d.remarks ? ' — ' + d.remarks : '')]
+                        ];
+
+                        const labelW  = colW * 0.28;
+                        const valueW  = colW - labelW - 4;
+                        const rowPad  = 2;
+                        const tblRowH = tblH / rows_data.length;
+                        let ty = y + imgH;
+
+                        rows_data.forEach((row, ri) => {
+                            const rowY = ty + ri * tblRowH;
+
+                            // Row divider (except first)
+                            if (ri > 0) {
+                                pdf.setDrawColor(232, 230, 225);
+                                pdf.setLineWidth(0.2);
+                                pdf.line(x, rowY, x + colW, rowY);
+                            }
+
+                            // Label col divider
+                            pdf.setDrawColor(232, 230, 225);
+                            pdf.setLineWidth(0.2);
+                            pdf.line(x + labelW, rowY, x + labelW, rowY + tblRowH);
+
+                            // Label text
+                            pdf.setFont('helvetica', 'normal');
+                            pdf.setFontSize(6);
+                            pdf.setTextColor(160, 160, 160);
+                            pdf.text(row[0], x + rowPad, rowY + tblRowH / 2 + 1, { baseline: 'middle' });
+
+                            // Value text (wrap if needed)
+                            pdf.setFont('helvetica', 'normal');
+                            pdf.setFontSize(7.5);
+                            pdf.setTextColor(26, 25, 22);
+                            const lines = wrapText(pdf, row[1], valueW, 7.5);
+                            const lineH = 3.2;
+                            const totalTH = lines.length * lineH;
+                            const startY = rowY + (tblRowH - totalTH) / 2 + lineH * 0.8;
+                            lines.slice(0, Math.floor(tblRowH / lineH)).forEach((ln, li) => {
+                                pdf.text(ln, x + labelW + rowPad, startY + li * lineH);
+                            });
+                        });
+                    }
+                }
             }
-        }, delay);
+
+            pdf.save(`Defect_Report_${Date.now()}.pdf`);
+            document.getElementById('loadingOverlay').classList.remove('show');
+            showToast('✓ ดาวน์โหลด PDF สำเร็จ');
+
+        } catch (err) {
+            console.error('PDF export error:', err);
+            document.getElementById('loadingOverlay').classList.remove('show');
+            showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+        }
     }
 
     // EXCEL EXPORT
