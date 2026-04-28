@@ -635,20 +635,13 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ── Card action buttons ── */
-    .card-actions {
-        display: flex;
-        gap: 6px;
-    }
+    .card-actions { display: flex; gap: 6px; }
     .card-action-btn {
-        width: 28px;
-        height: 28px;
+        width: 28px; height: 28px;
         border-radius: 7px;
         border: 1px solid var(--border);
         background: var(--surface);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: flex; align-items: center; justify-content: center;
         cursor: pointer;
         color: var(--text-muted);
         transition: all 0.15s;
@@ -659,76 +652,50 @@
     .card-action-btn.delete { color: #C0392B; border-color: #F5C6C6; }
     .card-action-btn.delete:active { background: #FFF0F0; }
 
-    /* ── Edit Modal ── */
     .edit-modal-overlay {
-        position: fixed;
-        inset: 0;
+        position: fixed; inset: 0;
         background: rgba(26,25,22,0.5);
-        z-index: 55;
-        display: none;
-        align-items: flex-end;
-        justify-content: center;
+        z-index: 55; display: none;
+        align-items: flex-end; justify-content: center;
     }
     .edit-modal-overlay.open { display: flex; }
 
     .edit-modal-sheet {
         background: var(--surface);
         border-radius: 20px 20px 0 0;
-        padding: 0;
-        width: 100%;
-        max-width: 430px;
+        padding: 0; width: 100%; max-width: 430px;
         max-height: 92svh;
-        display: flex;
-        flex-direction: column;
+        display: flex; flex-direction: column;
         animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
     }
 
     .edit-modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: flex; align-items: center; justify-content: space-between;
         padding: 20px 20px 16px;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
     }
 
     .edit-modal-header-left .edit-modal-sub {
-        font-family: var(--mono);
-        font-size: 9px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 3px;
+        font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px;
     }
 
     .edit-modal-title {
-        font-size: 15px;
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        color: var(--text-primary);
+        font-size: 15px; font-weight: 600;
+        letter-spacing: -0.02em; color: var(--text-primary);
     }
 
-    .edit-modal-body {
-        overflow-y: auto;
-        padding: 20px 20px 0;
-        flex: 1;
-    }
+    .edit-modal-body { overflow-y: auto; padding: 20px 20px 0; flex: 1; }
     .edit-modal-body::-webkit-scrollbar { display: none; }
 
-    /* Edit image area */
     .edit-upload-area {
-        width: 100%;
-        aspect-ratio: 16/7;
+        width: 100%; aspect-ratio: 16/7;
         border: 1.5px dashed var(--border);
-        border-radius: 10px;
-        background: var(--surface-2);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        overflow: hidden;
-        position: relative;
+        border-radius: 10px; background: var(--surface-2);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        cursor: pointer; overflow: hidden; position: relative;
         margin-bottom: 16px;
         transition: border-color 0.2s, background 0.2s;
     }
@@ -736,94 +703,51 @@
     .edit-upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
 
     #editImagePreview {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: none;
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; display: none;
     }
 
     .edit-remove-img-btn {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 6px;
-        width: 28px;
-        height: 28px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10;
-        color: var(--text-primary);
+        position: absolute; top: 8px; right: 8px;
+        background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+        border: 1px solid rgba(0,0,0,0.08); border-radius: 6px;
+        width: 28px; height: 28px; display: none;
+        align-items: center; justify-content: center;
+        cursor: pointer; z-index: 10; color: var(--text-primary);
     }
 
     .edit-modal-footer {
-        padding: 16px 20px 28px;
-        display: flex;
-        gap: 10px;
-        flex-shrink: 0;
-        border-top: 1px solid var(--border);
+        padding: 16px 20px 28px; display: flex; gap: 10px;
+        flex-shrink: 0; border-top: 1px solid var(--border);
     }
 
     .btn-cancel {
-        flex: 1;
-        background: var(--surface-2);
-        color: var(--text-secondary);
-        border: 1px solid var(--border);
-        padding: 13px;
-        border-radius: 10px;
-        font-family: var(--sans);
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: opacity 0.15s;
+        flex: 1; background: var(--surface-2); color: var(--text-secondary);
+        border: 1px solid var(--border); padding: 13px; border-radius: 10px;
+        font-family: var(--sans); font-size: 14px; font-weight: 500;
+        cursor: pointer; transition: opacity 0.15s;
     }
     .btn-cancel:active { opacity: 0.7; }
 
     .btn-save-edit {
-        flex: 2;
-        background: var(--text-primary);
-        color: white;
-        border: none;
-        padding: 13px;
-        border-radius: 10px;
-        font-family: var(--sans);
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
+        flex: 2; background: var(--text-primary); color: white; border: none;
+        padding: 13px; border-radius: 10px;
+        font-family: var(--sans); font-size: 14px; font-weight: 500;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
         transition: opacity 0.15s;
     }
     .btn-save-edit:active { opacity: 0.8; }
 
-    /* Delete confirm modal */
     .confirm-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(26,25,22,0.5);
-        z-index: 58;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
+        position: fixed; inset: 0; background: rgba(26,25,22,0.5);
+        z-index: 58; display: none;
+        align-items: center; justify-content: center; padding: 24px;
     }
     .confirm-overlay.open { display: flex; }
 
     .confirm-box {
-        background: var(--surface);
-        border-radius: 16px;
-        padding: 24px;
-        width: 100%;
-        max-width: 320px;
-        text-align: center;
+        background: var(--surface); border-radius: 16px; padding: 24px;
+        width: 100%; max-width: 320px; text-align: center;
         animation: popIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
     }
 
@@ -833,191 +757,84 @@
     }
 
     .confirm-icon {
-        width: 48px;
-        height: 48px;
-        background: #FFF0F0;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 14px;
-        color: #C0392B;
+        width: 48px; height: 48px; background: #FFF0F0; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 14px; color: #C0392B;
     }
 
-    .confirm-title {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 6px;
-        letter-spacing: -0.02em;
-    }
-
-    .confirm-sub {
-        font-size: 12.5px;
-        color: var(--text-muted);
-        margin-bottom: 20px;
-        line-height: 1.5;
-    }
-
-    .confirm-actions {
-        display: flex;
-        gap: 10px;
-    }
+    .confirm-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; letter-spacing: -0.02em; }
+    .confirm-sub { font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+    .confirm-actions { display: flex; gap: 10px; }
 
     .confirm-btn-cancel {
-        flex: 1;
-        background: var(--surface-2);
-        color: var(--text-secondary);
-        border: 1px solid var(--border);
-        padding: 11px;
-        border-radius: 9px;
-        font-family: var(--sans);
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
+        flex: 1; background: var(--surface-2); color: var(--text-secondary);
+        border: 1px solid var(--border); padding: 11px; border-radius: 9px;
+        font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer;
     }
 
     .confirm-btn-delete {
-        flex: 1;
-        background: #C0392B;
-        color: white;
-        border: none;
-        padding: 11px;
-        border-radius: 9px;
-        font-family: var(--sans);
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: opacity 0.15s;
+        flex: 1; background: #C0392B; color: white; border: none;
+        padding: 11px; border-radius: 9px;
+        font-family: var(--sans); font-size: 13px; font-weight: 500;
+        cursor: pointer; transition: opacity 0.15s;
     }
     .confirm-btn-delete:active { opacity: 0.8; }
 
-    /* ── PDF Preview Modal ── */
     .pdf-preview-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(26,25,22,0.6);
-        z-index: 62;
-        display: none;
-        align-items: flex-end;
-        justify-content: center;
+        position: fixed; inset: 0; background: rgba(26,25,22,0.6);
+        z-index: 62; display: none; align-items: flex-end; justify-content: center;
     }
     .pdf-preview-overlay.open { display: flex; }
 
     .pdf-preview-sheet {
-        background: var(--surface);
-        border-radius: 20px 20px 0 0;
-        width: 100%;
-        max-width: 430px;
-        height: 92svh;
-        display: flex;
-        flex-direction: column;
+        background: var(--surface); border-radius: 20px 20px 0 0;
+        width: 100%; max-width: 430px; height: 92svh;
+        display: flex; flex-direction: column;
         animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
     }
 
     .pdf-preview-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 20px 14px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 20px 20px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
 
-    .pdf-preview-body {
-        flex: 1;
-        overflow: hidden;
-        padding: 12px 16px;
-        background: var(--surface-2);
-    }
-
+    .pdf-preview-body { flex: 1; overflow: hidden; padding: 12px 16px; background: var(--surface-2); }
     .pdf-preview-footer {
-        padding: 14px 20px 28px;
-        display: flex;
-        gap: 10px;
-        flex-shrink: 0;
-        border-top: 1px solid var(--border);
+        padding: 14px 20px 28px; display: flex; gap: 10px;
+        flex-shrink: 0; border-top: 1px solid var(--border);
     }
 
-    /* ── Photo picker sheet buttons ── */
     .picker-btn {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 14px 16px;
-        background: var(--surface);
-        border: 1.5px solid var(--border);
-        border-radius: 12px;
-        cursor: pointer;
-        text-align: left;
-        transition: background 0.15s;
-        font-family: var(--sans);
+        width: 100%; display: flex; align-items: center; gap: 14px;
+        padding: 14px 16px; background: var(--surface);
+        border: 1.5px solid var(--border); border-radius: 12px;
+        cursor: pointer; text-align: left;
+        transition: background 0.15s; font-family: var(--sans);
     }
     .picker-btn:active { background: var(--surface-2); }
     .picker-btn-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 11px;
-        background: var(--accent-light);
-        color: var(--accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
+        width: 44px; height: 44px; border-radius: 11px;
+        background: var(--accent-light); color: var(--accent);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .picker-btn-text {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .picker-btn-text span {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-primary);
-    }
-    .picker-btn-text small {
-        font-size: 11px;
-        color: var(--text-muted);
-        font-family: var(--mono);
-    }
+    .picker-btn-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .picker-btn-text span { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    .picker-btn-text small { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
 
-    /* ── Inline export buttons ── */
-    .export-bar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 16px;
-    }
+    .export-bar { display: flex; gap: 10px; margin-bottom: 16px; }
     .btn-export-inline {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        padding: 11px 14px;
-        font-family: var(--sans);
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s;
-        background: var(--surface);
-        color: var(--text-primary);
+        flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+        border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px;
+        font-family: var(--sans); font-size: 13px; font-weight: 500;
+        cursor: pointer; transition: all 0.15s; background: var(--surface); color: var(--text-primary);
     }
     .btn-export-inline:active { background: var(--surface-2); transform: scale(0.98); }
     .btn-export-inline.pdf  { border-color: #F5C8B0; color: var(--accent); background: var(--accent-light); }
     .btn-export-inline.excel { border-color: #B0D8CC; color: var(--accent-2); background: var(--accent-2-light); }
     .btn-export-inline svg { flex-shrink: 0; }
 
-    /* ── Duplicate ID warning ── */
     .id-warning {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--accent);
-        margin-top: 5px;
-        display: none;
+        font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 5px; display: none;
     }
     .id-warning.show { display: block; }
 </style>
@@ -1064,7 +881,6 @@
             </button>
         </div>
 
-        <!-- ── Defect Number (editable) ── -->
         <div class="field">
             <label>เลขที่ Defect <span class="req">*</span></label>
             <input type="number" id="defectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkDuplicateId()">
@@ -1109,7 +925,6 @@
     </div>
 
     <div id="listView">
-        <!-- Inline export buttons — always visible in list tab -->
         <div class="export-bar" id="exportBar" style="display:none">
             <button class="btn-export-inline pdf" onclick="exportPDF()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1194,7 +1009,7 @@
     </div>
 </div>
 
-<!-- ── Photo Picker Sheet ── -->
+<!-- Photo Picker Sheet -->
 
 <div class="modal-overlay" id="pickerSheet" onclick="closePickerSheet(event)">
     <div class="modal-sheet" style="padding-bottom:32px">
@@ -1229,7 +1044,7 @@
     </div>
 </div>
 
-<!-- ── PDF Preview Modal ── -->
+<!-- PDF Preview Modal -->
 
 <div class="pdf-preview-overlay" id="pdfPreviewModal">
     <div class="pdf-preview-sheet">
@@ -1293,7 +1108,6 @@
             </button>
         </div>
 
-        <!-- Editable defect number in edit modal -->
         <div class="field">
             <label>เลขที่ Defect <span class="req">*</span></label>
             <input type="number" id="editDefectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkEditDuplicateId()">
@@ -1367,7 +1181,6 @@
     let selectedTeam = null;
     let isCustomTeam = false;
 
-    // ── Duplicate ID check (add form) ──
     function checkDuplicateId() {
         const val = parseInt(document.getElementById('defectNumber').value);
         const warn = document.getElementById('idWarning');
@@ -1378,7 +1191,6 @@
         }
     }
 
-    // ── Team selection ──
     function selectTeam(el, value) {
         document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
         el.classList.add('selected');
@@ -1400,8 +1212,7 @@
         return selectedTeam;
     }
 
-    // ── Photo picker sheet ──
-    let _pickerTarget = 'main'; // 'main' | 'edit'
+    let _pickerTarget = 'main';
 
     function openPickerSheet(target) {
         _pickerTarget = target;
@@ -1419,19 +1230,14 @@
             const el = source === 'camera'
                 ? document.getElementById('photoInputCamera')
                 : document.getElementById('photoInputGallery');
-            el.value = '';
-            el.click();
+            el.value = ''; el.click();
         } else {
             const el = source === 'camera'
                 ? document.getElementById('editPhotoInputCamera')
                 : document.getElementById('editPhotoInputGallery');
-            el.value = '';
-            el.click();
+            el.value = ''; el.click();
         }
     }
-
-    // ── Image upload ──
-    function triggerUpload() { openPickerSheet('main'); }
 
     function previewImage(event) {
         const file = event.target.files[0];
@@ -1461,7 +1267,6 @@
         document.getElementById('uploadArea').classList.remove('has-image');
     }
 
-    // ── Save defect ──
     function saveDefect() {
         const defectNumVal = document.getElementById('defectNumber').value.trim();
         const location     = document.getElementById('location').value.trim();
@@ -1487,14 +1292,12 @@
             location, details, team, remarks
         });
 
-        // Sort ascending by id
         defectsData.sort((a, b) => a.id - b.id);
 
         updateBadge();
         renderList();
         showToast('✓ บันทึกสำเร็จ');
 
-        // Reset form
         document.getElementById('defectNumber').value = '';
         document.getElementById('location').value     = '';
         document.getElementById('details').value      = '';
@@ -1509,7 +1312,6 @@
         document.getElementById('mainScroll').scrollTop = 0;
     }
 
-    // ── Render list (ascending order) ──
     function renderList() {
         const container = document.getElementById('defectsContainer');
         const empty     = document.getElementById('emptyState');
@@ -1530,7 +1332,6 @@
         document.getElementById('totalCount').textContent = defectsData.length;
         document.getElementById('teamCount').textContent  = new Set(defectsData.map(d => d.team)).size;
 
-        // Sort ascending by id before render
         const sorted = [...defectsData].sort((a, b) => a.id - b.id);
 
         sorted.forEach(d => {
@@ -1562,7 +1363,6 @@
         });
     }
 
-    // ── Tab switch ──
     function switchTab(tab) {
         const fv = document.getElementById('formView');
         const lv = document.getElementById('listView');
@@ -1607,7 +1407,7 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // PDF EXPORT
+    // PDF EXPORT (unchanged)
     // ════════════════════════════════════════════════════════════════
     async function ensureFontsLoaded() {
         if (document.fonts && document.fonts.ready) await document.fonts.ready;
@@ -1685,7 +1485,6 @@
             const ITEMS_PAGE = 6;
             const THAI_FONT  = `'Sarabun', 'Noto Sans Thai', sans-serif`;
 
-            // Sort ascending for PDF
             const sortedData = [...defectsData].sort((a, b) => a.id - b.id);
 
             const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
@@ -1825,7 +1624,6 @@
                 pdf.addImage(imgData, 'JPEG', 0, 0, PW_MM, PH_MM);
             }
 
-            // Generate blob URL for preview
             const pdfBlob = pdf.output('blob');
             const pdfUrl  = URL.createObjectURL(pdfBlob);
             const fileName = `Defect_Report_${Date.now()}.pdf`;
@@ -1840,7 +1638,6 @@
         }
     }
 
-    // ── PDF Preview ──
     let _currentPdfObj  = null;
     let _currentPdfName = '';
     let _currentPdfUrl  = null;
@@ -1849,7 +1646,6 @@
         _currentPdfUrl  = url;
         _currentPdfName = fileName;
         _currentPdfObj  = pdfObj;
-
         document.getElementById('pdfPreviewTitle').textContent = fileName;
         document.getElementById('pdfPreviewFrame').src = url;
         document.getElementById('pdfPreviewModal').classList.add('open');
@@ -1886,8 +1682,29 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // EXCEL EXPORT
+    // EXCEL EXPORT — FIXED VERSION
     // ════════════════════════════════════════════════════════════════
+
+    // Resize any image dataURL → PNG base64 (ExcelJS-safe)
+    function resizeImageToPng(dataURL, maxW, maxH) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+                const w = Math.round(img.width  * scale);
+                const h = Math.round(img.height * scale);
+                const c = document.createElement('canvas');
+                c.width  = w;
+                c.height = h;
+                c.getContext('2d').drawImage(img, 0, 0, w, h);
+                // Always output PNG — avoids 'jpg' vs 'jpeg' mismatch
+                resolve(c.toDataURL('image/png').split('base64,')[1]);
+            };
+            img.onerror = () => resolve(null);
+            img.src = dataURL;
+        });
+    }
+
     async function exportExcel() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
@@ -1895,24 +1712,34 @@
 
         try {
             const workbook = new ExcelJS.Workbook();
-            workbook.creator  = 'KS Construction';
-            workbook.created  = new Date();
+            workbook.creator = 'KS Construction';
+            workbook.created = new Date();
 
             const sheet = workbook.addWorksheet('รายงาน Defect', {
                 views: [{ showGridLines: false }],
-                pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+                pageSetup: {
+                    paperSize: 9, orientation: 'landscape',
+                    fitToPage: true, fitToWidth: 1, fitToHeight: 0
+                }
             });
 
+            // Row height in points (1 pt ≈ 1.333px). 115pt ≈ 153px
+            const ROW_H_PT  = 115;
+            // Image pixel size — fits inside cell with small margin
+            const IMG_PX_W  = 230;
+            const IMG_PX_H  = 128;
+
             sheet.columns = [
-                { header: 'ลำดับ',           key: 'id',       width: 7  },
-                { header: 'รูปภาพ Defect',   key: 'image',    width: 32 },
-                { header: 'Zone / ตำแหน่ง', key: 'location', width: 28 },
-                { header: 'หมวดงาน / ทีม',  key: 'team',     width: 22 },
+                { header: 'ลำดับ',            key: 'id',       width: 7  },
+                { header: 'รูปภาพ Defect',    key: 'image',    width: 34 },
+                { header: 'Zone / ตำแหน่ง',  key: 'location', width: 28 },
+                { header: 'หมวดงาน / ทีม',   key: 'team',     width: 22 },
                 { header: 'รายการที่ต้องแก้', key: 'details',  width: 45 },
-                { header: 'หมายเหตุ',        key: 'remarks',  width: 25 },
-                { header: 'วันที่บันทึก',    key: 'date',     width: 22 }
+                { header: 'หมายเหตุ',         key: 'remarks',  width: 25 },
+                { header: 'วันที่บันทึก',     key: 'date',     width: 22 }
             ];
 
+            // Style header row
             const headerRow = sheet.getRow(1);
             headerRow.height = 32;
             headerRow.eachCell({ includeEmpty: true }, (cell) => {
@@ -1922,34 +1749,38 @@
                 cell.border    = { bottom: { style: 'thin', color: { argb: 'FF444444' } } };
             });
 
-            // Sort ascending for Excel
             const sortedData = [...defectsData].sort((a, b) => a.id - b.id);
 
             for (let index = 0; index < sortedData.length; index++) {
                 const d        = sortedData[index];
-                const rowIndex = index + 2;
+                const rowIndex = index + 2;   // 1-based; row 1 = header
                 const row      = sheet.getRow(rowIndex);
-                row.height = 115;
+                row.height = ROW_H_PT;
 
+                // Text cells
                 row.getCell('A').value = d.id;
+                // Column B (image) — leave value empty, image embedded below
                 row.getCell('C').value = d.location;
                 row.getCell('D').value = d.team;
                 row.getCell('E').value = d.details;
                 row.getCell('F').value = d.remarks || '-';
                 row.getCell('G').value = new Date(d.timestamp).toLocaleString('th-TH', {
-                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
                 });
 
+                // Style text cells
                 ['A','C','D','E','F','G'].forEach(col => {
                     const cell = row.getCell(col);
                     cell.font      = { name: 'Tahoma', size: 11 };
                     cell.alignment = {
-                        vertical: 'middle',
-                        horizontal: col === 'A' || col === 'G' ? 'center' : 'left',
-                        wrapText: true
+                        vertical:   'middle',
+                        horizontal: (col === 'A' || col === 'G') ? 'center' : 'left',
+                        wrapText:   true
                     };
                 });
 
+                // Alternating row background
                 const rowBg = index % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9';
                 ['A','B','C','D','E','F','G'].forEach(col => {
                     const cell = row.getCell(col);
@@ -1962,22 +1793,37 @@
                     };
                 });
 
+                // ── IMAGE EMBED (fixed) ──────────────────────────────
                 if (d.image) {
                     try {
-                        const mimeType   = d.image.substring('data:image/'.length, d.image.indexOf(';base64'));
-                        const base64Data = d.image.split('base64,')[1];
-                        const ext        = mimeType === 'jpeg' || mimeType === 'jpg' ? 'jpeg' : 'png';
-                        const imageId    = workbook.addImage({ base64: base64Data, extension: ext });
-                        sheet.addImage(imageId, {
-                            tl: { col: 1.08, row: rowIndex - 1 + 0.08 },
-                            ext: { width: 220, height: 128 },
-                            editAs: 'oneCell'
-                        });
-                    } catch (imgErr) { console.warn('Image embed failed:', imgErr); }
+                        // Convert to PNG (avoids 'jpg' / 'jpeg' extension bug in ExcelJS)
+                        const pngBase64 = await resizeImageToPng(d.image, IMG_PX_W, IMG_PX_H);
+                        if (pngBase64) {
+                            const imageId = workbook.addImage({
+                                base64:    pngBase64,
+                                extension: 'png'           // ← must be 'png', 'jpeg', or 'gif'
+                            });
+
+                            // tl / br are 0-based col/row indices
+                            // tl = top-left corner of cell B in this data row
+                            // br = top-left corner of cell C in the NEXT row
+                            // Adding small offsets (0.08) keeps a 1-cell margin
+                            sheet.addImage(imageId, {
+                                tl: { col: 1 + 0.08, row: (rowIndex - 1) + 0.08 },
+                                br: { col: 2 - 0.08, row: rowIndex        - 0.08 },
+                                editAs: 'oneCell'
+                            });
+                        }
+                    } catch (imgErr) {
+                        console.warn('Image embed failed for DEF', d.id, imgErr);
+                    }
                 }
+                // ────────────────────────────────────────────────────
             }
 
+            // Freeze header row
             sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, showGridLines: false }];
+
             const buffer = await workbook.xlsx.writeBuffer();
             const blob   = new Blob([buffer], {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -2001,7 +1847,6 @@
     let editSelectedTeam = null;
     let editIsCustomTeam = false;
 
-    // Duplicate check in edit modal (exclude current item)
     function checkEditDuplicateId() {
         const val  = parseInt(document.getElementById('editDefectNumber').value);
         const warn = document.getElementById('editIdWarning');
@@ -2095,8 +1940,6 @@
         return editSelectedTeam;
     }
 
-    function triggerEditUpload() { openPickerSheet('edit'); }
-
     function editPreviewImage(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -2149,9 +1992,7 @@
             defectsData[idx] = { ...defectsData[idx], id: newId, image: editImageDataURL, location, details, team, remarks };
         }
 
-        // Re-sort after edit
         defectsData.sort((a, b) => a.id - b.id);
-
         closeEditModal();
         renderList();
         showToast('✓ แก้ไขสำเร็จ');
@@ -2175,7 +2016,6 @@
     function confirmDelete() {
         if (deletingId === null) return;
         defectsData = defectsData.filter(x => x.id !== deletingId);
-        // No re-numbering — preserve custom IDs
         closeConfirmModal();
         updateBadge();
         renderList();
