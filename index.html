@@ -14,10 +14,10 @@
     
     <style>
         :root {
-            --bg: #F7F6F3;
+            --bg: #FFFFFF;
             --surface: #FFFFFF;
-            --surface-2: #F0EEE9;
-            --border: #E2DFD8;
+            --surface-2: #F5F5F5;
+            --border: #E8E8E8;
             --text-primary: #1A1916;
             --text-secondary: #6B6860;
             --text-muted: #A8A49D;
@@ -64,8 +64,8 @@
 
         .header-left .eyebrow {
             font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 0.14em;
+            font-size: 7.5px;
+            letter-spacing: 0.10em;
             text-transform: uppercase;
             color: var(--text-muted);
             margin-bottom: 4px;
@@ -145,7 +145,7 @@
             aspect-ratio: 16/9;
             border: 1.5px dashed var(--border);
             border-radius: 12px;
-            background: var(--surface);
+            background: var(--surface-2);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -156,8 +156,8 @@
             transition: border-color 0.2s, background 0.2s;
             margin-bottom: 20px;
         }
-        .upload-area:active { background: var(--surface-2); }
-        .upload-area.has-image { border-style: solid; border-color: var(--border); }
+        .upload-area:active { background: #EEEEEE; }
+        .upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
 
         .upload-placeholder {
             display: flex;
@@ -170,7 +170,7 @@
             width: 40px;
             height: 40px;
             border-radius: 10px;
-            background: var(--surface-2);
+            background: #E8E8E8;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -529,93 +529,6 @@
         }
         .nav-dot.visible { display: block; }
 
-        /* CROP MODAL */
-        .crop-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(26,25,22,0.9);
-            z-index: 70;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .crop-modal-overlay.open { display: flex; }
-
-        .crop-modal-content {
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .crop-modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .crop-modal-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .crop-modal-close {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            background: var(--surface-2);
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-size: 18px;
-        }
-
-        #cropImagePreview {
-            width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .crop-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .crop-btn {
-            padding: 10px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            border-radius: 8px;
-            font-family: var(--sans);
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
-            color: var(--text-primary);
-        }
-
-        .crop-btn:active { background: var(--surface-2); }
-
-        .crop-btn.primary {
-            background: var(--text-primary);
-            color: white;
-            border-color: var(--text-primary);
-            grid-column: 1 / -1;
-        }
-
         /* EXPORT MODAL */
         .modal-overlay {
             position: fixed;
@@ -717,7 +630,7 @@
         .loading-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(247,246,243,0.95);
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(8px);
             z-index: 60;
             display: none;
@@ -774,50 +687,50 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* PDF Export Container */
+        /* PDF Export Container — hidden off-screen */
         .hidden-pdf-wrap {
-            position: absolute;
+            position: fixed;
+            left: -9999px;
             top: 0;
-            left: 0;
-            z-index: -999;
-            opacity: 0;
             pointer-events: none;
         }
 
         #pdf-export-container {
-            width: 210mm;
+            width: 794px;
             background: white;
-            color: black;
             font-family: 'IBM Plex Sans Thai', sans-serif;
         }
 
-        /* ===== PDF PAGE STYLES ===== */
         .pdf-page {
-            width: 210mm;
-            padding: 12mm;
+            width: 794px;
+            padding: 40px 44px;
             background: white;
-            page-break-after: always;
-            break-after: page;
         }
 
-        /* Remove page break after the very last page */
-        .pdf-page:last-child {
-            page-break-after: avoid;
-            break-after: avoid;
+        .pdf-company {
+            font-size: 9px;
+            font-weight: 400;
+            text-align: center;
+            color: #C0BDBA;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .pdf-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             letter-spacing: -0.02em;
+            color: #1A1916;
         }
 
         .pdf-subtitle {
             font-size: 11px;
             text-align: center;
-            color: #888;
+            color: #999;
             margin-bottom: 4px;
             font-family: 'IBM Plex Mono', monospace;
         }
@@ -826,7 +739,7 @@
             font-size: 10px;
             text-align: center;
             color: #bbb;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             font-family: 'IBM Plex Mono', monospace;
             letter-spacing: 0.08em;
         }
@@ -834,21 +747,19 @@
         .pdf-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 16px;
         }
 
         .pdf-item {
             border: 1px solid #E0DDD8;
             border-radius: 8px;
             overflow: hidden;
-            /* Prevent individual items from breaking across pages */
-            page-break-inside: avoid;
-            break-inside: avoid;
         }
 
         .pdf-item-img-row {
             display: flex;
             height: 160px;
+            overflow: hidden;
         }
 
         .pdf-item-num {
@@ -866,12 +777,9 @@
         .pdf-item-img {
             flex: 1;
             overflow: hidden;
-        }
-
-        .pdf-item-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
         }
 
         .pdf-item-table {
@@ -888,16 +796,26 @@
             padding: 6px 10px;
             font-size: 12px;
             vertical-align: top;
+            color: #1A1916;
         }
 
         .pdf-item-table td:first-child {
-            width: 30%;
-            color: #888;
+            width: 28%;
+            color: #999;
             font-size: 10px;
             font-family: 'IBM Plex Mono', monospace;
             border-right: 1px solid #E8E6E1;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+        }
+
+        .pdf-page-break {
+            page-break-before: always;
+            break-before: page;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            border: none;
         }
     </style>
 </head>
@@ -907,7 +825,7 @@
 
     <header class="header">
         <div class="header-left">
-            <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN</div>
+            <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
             <h1 id="headerTitle">Defect Log</h1>
         </div>
         <div class="header-right">
@@ -1067,7 +985,7 @@
     let selectedTeam = null;
     let isCustomTeam = false;
 
-    const ITEMS_PER_PAGE = 6; // 6 items per PDF page (3 rows × 2 columns)
+    const ITEMS_PER_PAGE = 6;
 
     // TEAM SELECTION
     function selectTeam(el, value) {
@@ -1258,7 +1176,7 @@
         if (e.target === document.getElementById('exportModal')) closeExportModal();
     }
 
-    // PDF EXPORT — builds one .pdf-page per 6 items
+    // PDF EXPORT
     function buildPDFTemplate() {
         const container = document.getElementById('pdf-export-container');
         container.innerHTML = '';
@@ -1267,22 +1185,23 @@
         const dateStr = now.toLocaleDateString('th-TH');
         const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
 
-        // Chunk data into pages of 6
         for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+            if (pageIdx > 0) {
+                const breakDiv = document.createElement('div');
+                breakDiv.className = 'pdf-page-break';
+                container.appendChild(breakDiv);
+            }
+
             const pageItems = defectsData.slice(
                 pageIdx * ITEMS_PER_PAGE,
                 (pageIdx + 1) * ITEMS_PER_PAGE
             );
 
-            const pageNum = pageIdx + 1;
-            const isLastPage = pageIdx === totalPages - 1;
-
-            // Build items HTML for this page
             const itemsHTML = pageItems.map(d => `
                 <div class="pdf-item">
                     <div class="pdf-item-img-row">
                         <div class="pdf-item-num">${d.id}</div>
-                        <div class="pdf-item-img"><img src="${d.image}"></div>
+                        <div class="pdf-item-img" style="background-image: url('${d.image}');"></div>
                     </div>
                     <table class="pdf-item-table">
                         <tr><td>Zone</td><td>${d.location}</td></tr>
@@ -1292,18 +1211,13 @@
                 </div>
             `).join('');
 
-            // Build page element
             const page = document.createElement('div');
             page.className = 'pdf-page';
-            // Force page break on all pages except the last
-            if (!isLastPage) {
-                page.style.pageBreakAfter = 'always';
-            }
-
             page.innerHTML = `
+                <div class="pdf-company">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
                 <div class="pdf-title">Defect Report</div>
                 <div class="pdf-subtitle">Generated ${dateStr} — ${defectsData.length} items total</div>
-                <div class="pdf-page-num">PAGE ${pageNum} / ${totalPages}</div>
+                <div class="pdf-page-num">PAGE ${pageIdx + 1} / ${totalPages}</div>
                 <div class="pdf-grid">${itemsHTML}</div>
             `;
 
@@ -1321,12 +1235,17 @@
         setTimeout(() => {
             const element = document.getElementById('pdf-export-container');
             const opt = {
-                margin:       0,
-                filename:     `Defect_Report_${Date.now()}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'], before: '.pdf-page' }
+                margin:      0,
+                filename:    `Defect_Report_${Date.now()}.pdf`,
+                image:       { type: 'jpeg', quality: 0.95 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                },
+                jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:   { mode: ['css'], before: '.pdf-page-break' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
@@ -1337,10 +1256,10 @@
                 document.getElementById('loadingOverlay').classList.remove('show');
                 showToast('❌ เกิดข้อผิดพลาด');
             });
-        }, 500);
+        }, 600);
     }
 
-    // EXCEL EXPORT (EXCELJS)
+    // EXCEL EXPORT
     async function exportExcel() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
