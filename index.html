@@ -37,26 +37,33 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    html, body {
+    html {
         width: 100%;
         height: 100%;
+        /* prevent iOS bounce at html level */
         overflow: hidden;
     }
 
     body {
+        width: 100%;
+        height: 100%;
+        /* use dvh so iOS bottom bar is accounted for */
+        min-height: 100dvh;
+        overflow: hidden;
         font-family: var(--sans);
         background: #E8E6E1;
         color: var(--text-primary);
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: stretch; /* stretch so shell fills full height on mobile */
     }
 
     /* ── Centered phone shell on desktop ── */
     .phone-shell {
         width: 100%;
         max-width: 430px;
-        height: 100%;
+        /* fill full viewport height always */
+        height: 100dvh;
         max-height: 100dvh;
         background: var(--bg);
         display: flex;
@@ -146,11 +153,12 @@
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
+        scroll-padding-bottom: 80px;
     }
     main::-webkit-scrollbar { display: none; }
 
-    #formView { padding: 20px; }
-    #listView { padding: 14px 20px; display: none; }
+    #formView { padding: 20px 20px calc(80px + var(--safe-bottom)); }
+    #listView { padding: 14px 20px calc(80px + var(--safe-bottom)); display: none; }
 
     .section-title {
         font-family: var(--mono);
@@ -475,7 +483,8 @@
     .bottom-nav {
         background: var(--bg);
         border-top: 1px solid var(--border);
-        padding: 8px 16px calc(8px + var(--safe-bottom));
+        /* pad bottom by safe area so nav doesn't hide behind home bar */
+        padding: 8px 16px max(var(--safe-bottom), 10px);
         display: flex;
         flex-shrink: 0;
         z-index: 20;
