@@ -4,31 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Defect Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
     <style>
         :root {
-            --bg: #FAFAF8;
+            --bg: #FFFFFF;
             --surface: #FFFFFF;
-            --surface-2: #F4F3F0;
-            --surface-3: #ECEAE5;
-            --border: #E0DDD8;
-            --border-strong: #C8C4BC;
-            --text-primary: #1C1B18;
-            --text-secondary: #5C5A54;
-            --text-muted: #9A9790;
-            --accent: #B8410E;
+            --surface-2: #F5F5F5;
+            --border: #E8E8E8;
+            --text-primary: #1A1916;
+            --text-secondary: #6B6860;
+            --text-muted: #A8A49D;
+            --accent: #D4521A;
             --accent-light: #FBF0EB;
-            --accent-2: #1E5C44;
-            --accent-2-light: #EBF5F1;
-            --gold: #A07830;
+            --accent-2: #2A5F4F;
+            --accent-2-light: #EBF5F2;
             --mono: 'IBM Plex Mono', monospace;
-            --serif: 'IBM Plex Serif', Georgia, serif;
-            --sans: 'Sarabun', sans-serif;
+            --sans: 'IBM Plex Sans Thai', sans-serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -51,34 +49,32 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 0 1px var(--border);
         }
 
-        /* ── HEADER ── */
+        /* HEADER */
         .header {
-            background: var(--surface);
-            padding: 18px 22px 14px;
+            background: var(--bg);
+            padding: 20px 24px 16px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
-            border-bottom: 2px solid var(--text-primary);
+            border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
 
         .header-left .eyebrow {
             font-family: var(--mono);
-            font-size: 7px;
-            letter-spacing: 0.18em;
+            font-size: 7.5px;
+            letter-spacing: 0.10em;
             text-transform: uppercase;
             color: var(--text-muted);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .header-left h1 {
-            font-family: var(--serif);
             font-size: 22px;
             font-weight: 600;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
             color: var(--text-primary);
             line-height: 1;
         }
@@ -92,18 +88,17 @@
         .btn-export {
             display: none;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             background: var(--text-primary);
             color: white;
             border: none;
-            padding: 7px 13px;
-            border-radius: 4px;
-            font-family: var(--mono);
-            font-size: 10px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: var(--sans);
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            letter-spacing: 0.01em;
             transition: opacity 0.15s;
         }
         .btn-export:active { opacity: 0.7; }
@@ -116,40 +111,40 @@
             background: var(--surface-2);
             color: var(--text-secondary);
             padding: 5px 10px;
-            border-radius: 3px;
+            border-radius: 20px;
             border: 1px solid var(--border);
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
         }
 
-        /* ── MAIN ── */
+        /* MAIN */
         main {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 88px;
+            padding-bottom: 90px;
         }
+
         main::-webkit-scrollbar { display: none; }
 
-        #formView { padding: 22px; }
-        #listView  { padding: 16px 22px; display: none; }
+        /* FORM VIEW */
+        #formView { padding: 24px; }
+        #listView { padding: 16px 24px; display: none; }
 
         .section-title {
             font-family: var(--mono);
             font-size: 9px;
-            letter-spacing: 0.18em;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
             color: var(--text-muted);
-            margin-bottom: 18px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
         }
 
-        /* ── IMAGE UPLOAD ── */
+        /* IMAGE UPLOAD */
         .upload-area {
             width: 100%;
             aspect-ratio: 16/9;
-            border: 1.5px dashed var(--border-strong);
-            border-radius: 6px;
+            border: 1.5px dashed var(--border);
+            border-radius: 12px;
             background: var(--surface-2);
             display: flex;
             flex-direction: column;
@@ -159,9 +154,9 @@
             overflow: hidden;
             position: relative;
             transition: border-color 0.2s, background 0.2s;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
         }
-        .upload-area:active { background: var(--surface-3); }
+        .upload-area:active { background: #EEEEEE; }
         .upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
 
         .upload-placeholder {
@@ -172,11 +167,10 @@
         }
 
         .upload-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 4px;
-            background: var(--surface-3);
-            border: 1px solid var(--border);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #E8E8E8;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -184,7 +178,7 @@
 
         .upload-placeholder span {
             font-size: 13px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             font-weight: 400;
         }
 
@@ -192,7 +186,7 @@
             font-family: var(--mono);
             font-size: 10px;
             color: var(--text-muted);
-            letter-spacing: 0.08em;
+            letter-spacing: 0.05em;
         }
 
         #imagePreview {
@@ -208,9 +202,10 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(255,255,255,0.92);
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 3px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 6px;
             width: 28px;
             height: 28px;
             display: none;
@@ -219,21 +214,21 @@
             cursor: pointer;
             z-index: 10;
             color: var(--text-primary);
-            font-family: var(--mono);
-            font-size: 11px;
+            transition: background 0.15s;
         }
+        .remove-img-btn:active { background: white; }
 
-        /* ── FORM FIELDS ── */
+        /* FORM FIELDS */
         .field { margin-bottom: 16px; }
 
         .field label {
             display: block;
-            font-family: var(--mono);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
             color: var(--text-secondary);
-            letter-spacing: 0.14em;
-            margin-bottom: 7px;
+            letter-spacing: 0.03em;
+            margin-bottom: 6px;
+            font-family: var(--mono);
             text-transform: uppercase;
         }
 
@@ -243,8 +238,8 @@
             width: 100%;
             background: var(--surface);
             border: 1.5px solid var(--border);
-            border-radius: 4px;
-            padding: 11px 13px;
+            border-radius: 10px;
+            padding: 11px 14px;
             font-family: var(--sans);
             font-size: 14px;
             color: var(--text-primary);
@@ -257,37 +252,37 @@
 
         input[type="text"]:focus, textarea:focus {
             border-color: var(--text-primary);
-            box-shadow: 0 0 0 3px rgba(28,27,24,0.06);
+            box-shadow: 0 0 0 3px rgba(26,25,22,0.06);
         }
 
         textarea { resize: none; min-height: 80px; }
 
-        /* ── TEAM TAGS ── */
+        /* TEAM TAGS */
         .team-tag-label {
-            font-family: var(--mono);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
             color: var(--text-secondary);
-            letter-spacing: 0.14em;
+            letter-spacing: 0.03em;
             margin-bottom: 10px;
             display: block;
+            font-family: var(--mono);
             text-transform: uppercase;
         }
+
         .team-tag-label .req { color: var(--accent); margin-left: 2px; }
 
         .team-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 7px;
+            gap: 8px;
             margin-bottom: 16px;
         }
 
         .team-tag {
             padding: 7px 13px;
-            border-radius: 3px;
+            border-radius: 8px;
             background: var(--surface);
             border: 1.5px solid var(--border);
-            font-family: var(--sans);
             font-size: 12.5px;
             font-weight: 400;
             color: var(--text-secondary);
@@ -296,7 +291,9 @@
             user-select: none;
             -webkit-user-select: none;
         }
+
         .team-tag:active { transform: scale(0.97); }
+
         .team-tag.selected {
             background: var(--text-primary);
             border-color: var(--text-primary);
@@ -304,6 +301,7 @@
             font-weight: 500;
         }
 
+        /* CUSTOM TEAM INPUT */
         .custom-team-wrap {
             margin-top: 8px;
             margin-bottom: 16px;
@@ -313,29 +311,29 @@
         }
         .custom-team-wrap.open { max-height: 60px; }
 
-        /* ── SUBMIT BTN ── */
+        /* SUBMIT BTN */
         .btn-submit {
             width: 100%;
             background: var(--text-primary);
             color: white;
             border: none;
-            padding: 13px;
-            border-radius: 4px;
+            padding: 14px;
+            border-radius: 10px;
             font-family: var(--sans);
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            letter-spacing: 0.01em;
+            letter-spacing: -0.01em;
             transition: opacity 0.15s;
             margin-top: 24px;
         }
         .btn-submit:active { opacity: 0.8; }
 
-        /* ── LIST VIEW ── */
+        /* LIST VIEW */
         .list-stats {
             display: flex;
             gap: 10px;
@@ -346,34 +344,33 @@
             flex: 1;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 4px;
+            border-radius: 10px;
             padding: 12px 14px;
         }
 
         .stat-chip .stat-num {
-            font-family: var(--serif);
-            font-size: 26px;
-            font-weight: 600;
+            font-family: var(--mono);
+            font-size: 24px;
+            font-weight: 500;
             color: var(--text-primary);
             line-height: 1;
         }
 
         .stat-chip .stat-label {
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 0.1em;
+            font-size: 10px;
             color: var(--text-muted);
-            margin-top: 5px;
-            text-transform: uppercase;
+            margin-top: 4px;
+            letter-spacing: 0.03em;
         }
 
-        /* ── DEFECT CARD ── */
+        /* DEFECT CARD */
         .defect-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 12px;
             overflow: hidden;
             margin-bottom: 12px;
+            transition: box-shadow 0.2s;
         }
 
         .card-image {
@@ -385,7 +382,7 @@
         }
 
         .card-body {
-            padding: 14px 16px 12px;
+            padding: 14px 16px;
         }
 
         .card-header {
@@ -400,14 +397,8 @@
             font-size: 10px;
             font-weight: 500;
             color: var(--text-muted);
-            letter-spacing: 0.14em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-        }
-
-        .card-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .card-date {
@@ -416,73 +407,45 @@
             color: var(--text-muted);
         }
 
-        .btn-edit {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 3px;
-            padding: 4px 9px;
-            font-family: var(--mono);
-            font-size: 9px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn-edit:active {
-            background: var(--text-primary);
-            color: white;
-            border-color: var(--text-primary);
-        }
-
         .card-location {
-            font-family: var(--serif);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: -0.01em;
-            margin-bottom: 7px;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
         }
 
         .card-details {
-            font-family: var(--sans);
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--text-secondary);
-            margin-bottom: 11px;
-            line-height: 1.6;
+            margin-bottom: 10px;
+            line-height: 1.5;
         }
 
         .card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 10px;
-            border-top: 1px solid var(--surface-2);
         }
 
         .team-badge {
-            font-family: var(--mono);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
             padding: 4px 10px;
-            border-radius: 2px;
+            border-radius: 6px;
             background: var(--surface-2);
             color: var(--text-secondary);
             border: 1px solid var(--border);
-            letter-spacing: 0.06em;
         }
 
         .card-remarks {
-            font-family: var(--sans);
-            font-size: 11px;
+            font-family: var(--mono);
+            font-size: 10px;
             color: var(--text-muted);
             font-style: italic;
-            max-width: 55%;
-            text-align: right;
         }
 
-        /* ── EMPTY STATE ── */
+        /* EMPTY STATE */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -493,11 +456,10 @@
         }
 
         .empty-icon {
-            width: 52px;
-            height: 52px;
+            width: 56px;
+            height: 56px;
             background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 4px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -505,8 +467,7 @@
         }
 
         .empty-state p {
-            font-family: var(--serif);
-            font-size: 15px;
+            font-size: 14px;
             color: var(--text-secondary);
             margin-bottom: 6px;
         }
@@ -515,17 +476,16 @@
             font-family: var(--mono);
             font-size: 11px;
             color: var(--text-muted);
-            letter-spacing: 0.06em;
         }
 
-        /* ── BOTTOM NAV ── */
+        /* BOTTOM NAV */
         .bottom-nav {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--surface);
-            border-top: 2px solid var(--text-primary);
+            background: var(--bg);
+            border-top: 1px solid var(--border);
             padding: 10px 24px 20px;
             display: flex;
             z-index: 20;
@@ -546,33 +506,34 @@
             position: relative;
             font-family: var(--sans);
         }
+
         .nav-btn.active { color: var(--text-primary); }
 
         .nav-btn span {
-            font-family: var(--mono);
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 500;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
+            font-family: var(--mono);
         }
 
         .nav-dot {
             position: absolute;
             top: 6px;
             right: 22px;
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: var(--accent);
             display: none;
         }
         .nav-dot.visible { display: block; }
 
-        /* ── EDIT MODAL ── */
+        /* EXPORT MODAL */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(28,27,24,0.55);
+            background: rgba(26,25,22,0.5);
             z-index: 50;
             display: none;
             align-items: flex-end;
@@ -582,176 +543,44 @@
 
         .modal-sheet {
             background: var(--surface);
-            border-radius: 0;
-            border-top: 2px solid var(--text-primary);
-            padding: 26px 22px 36px;
+            border-radius: 20px 20px 0 0;
+            padding: 28px 24px 36px;
             width: 100%;
             max-width: 430px;
-            max-height: 90svh;
-            overflow-y: auto;
-            animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1);
+            animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
         }
-        .modal-sheet::-webkit-scrollbar { display: none; }
 
         @keyframes slideUp {
             from { transform: translateY(100%); }
-            to   { transform: translateY(0); }
+            to { transform: translateY(0); }
         }
 
         .modal-header {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
-            margin-bottom: 22px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .modal-title-group .modal-eyebrow {
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+            margin-bottom: 24px;
         }
 
         .modal-title {
-            font-family: var(--serif);
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
-            letter-spacing: -0.01em;
-            color: var(--text-primary);
+            letter-spacing: -0.02em;
         }
 
         .modal-close {
-            width: 30px;
-            height: 30px;
-            border-radius: 3px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             background: var(--surface-2);
-            border: 1px solid var(--border);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        /* Edit modal image preview */
-        .edit-img-wrap {
-            width: 100%;
-            aspect-ratio: 16/7;
-            border-radius: 4px;
-            overflow: hidden;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .edit-img-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .edit-img-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .edit-img-placeholder span {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .edit-img-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .edit-img-wrap:hover .edit-img-overlay,
-        .edit-img-wrap:active .edit-img-overlay { opacity: 1; }
-
-        .edit-img-overlay span {
-            font-family: var(--mono);
-            font-size: 11px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: white;
-            font-weight: 500;
-        }
-
-        /* Modal action buttons */
-        .modal-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 26px;
-        }
-
-        .btn-modal-cancel {
-            padding: 12px;
-            border-radius: 4px;
-            border: 1.5px solid var(--border);
-            background: var(--surface);
-            font-family: var(--sans);
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn-modal-cancel:active { background: var(--surface-2); }
-
-        .btn-modal-save {
-            padding: 12px;
-            border-radius: 4px;
             border: none;
-            background: var(--text-primary);
-            font-family: var(--sans);
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
             cursor: pointer;
-            transition: opacity 0.15s;
-        }
-        .btn-modal-save:active { opacity: 0.8; }
-
-        .btn-modal-delete {
-            grid-column: 1 / -1;
-            padding: 11px;
-            border-radius: 4px;
-            border: 1.5px solid #E8D5D0;
-            background: var(--accent-light);
-            font-family: var(--sans);
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--accent);
-            cursor: pointer;
-            transition: all 0.15s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            color: var(--text-secondary);
         }
-        .btn-modal-delete:active { opacity: 0.8; }
 
-        /* ── EXPORT MODAL ── */
         .export-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -760,8 +589,8 @@
 
         .export-option {
             border: 1.5px solid var(--border);
-            border-radius: 6px;
-            padding: 18px 14px;
+            border-radius: 12px;
+            padding: 20px 16px;
             cursor: pointer;
             background: var(--surface);
             display: flex;
@@ -772,21 +601,22 @@
         .export-option:active { background: var(--surface-2); transform: scale(0.98); }
 
         .export-option-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 4px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .export-option-icon.pdf   { background: var(--accent-light);   color: var(--accent); }
-        .export-option-icon.excel { background: var(--accent-2-light);  color: var(--accent-2); }
+
+        .export-option-icon.pdf { background: var(--accent-light); color: var(--accent); }
+        .export-option-icon.excel { background: var(--accent-2-light); color: var(--accent-2); }
 
         .export-option-label {
-            font-family: var(--serif);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
+            letter-spacing: -0.01em;
         }
 
         .export-option-desc {
@@ -794,14 +624,13 @@
             font-size: 10px;
             color: var(--text-muted);
             margin-top: 2px;
-            letter-spacing: 0.06em;
         }
 
-        /* ── LOADING ── */
+        /* LOADING */
         .loading-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(250,250,248,0.96);
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(8px);
             z-index: 60;
             display: none;
@@ -813,8 +642,8 @@
         .loading-overlay.show { display: flex; }
 
         .spinner {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border: 2px solid var(--border);
             border-top-color: var(--text-primary);
             border-radius: 50%;
@@ -824,20 +653,18 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .loading-text {
-            font-family: var(--serif);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: var(--text-primary);
         }
 
         .loading-sub {
             font-family: var(--mono);
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-muted);
-            letter-spacing: 0.1em;
         }
 
-        /* ── TOAST ── */
+        /* TOAST */
         .toast {
             position: absolute;
             top: 80px;
@@ -845,12 +672,10 @@
             transform: translateX(-50%) translateY(-8px);
             background: var(--text-primary);
             color: white;
-            padding: 10px 18px;
-            border-radius: 3px;
-            font-family: var(--mono);
-            font-size: 11px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 12.5px;
             font-weight: 500;
-            letter-spacing: 0.06em;
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
@@ -862,8 +687,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* edit modal team tags */
-        #editTeamTags .team-tag { font-size: 12px; padding: 6px 11px; }
     </style>
 </head>
 <body>
@@ -877,7 +700,7 @@
         </div>
         <div class="header-right">
             <button class="btn-export" id="exportBtn" onclick="openExportModal()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 Export
             </button>
             <div class="count-chip" id="countChip" style="display:none">
@@ -888,7 +711,6 @@
 
     <main id="mainScroll">
 
-        <!-- FORM VIEW -->
         <div id="formView">
             <p class="section-title">New Entry</p>
 
@@ -916,13 +738,13 @@
             <div class="field">
                 <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
                 <div class="team-tags" id="teamTags">
-                    <div class="team-tag" onclick="selectTeam(this, 'ช่างทาสี', false)">ช่างทาสี</div>
-                    <div class="team-tag" onclick="selectTeam(this, 'ช่างปูน/โครงสร้าง', false)">ช่างปูน</div>
-                    <div class="team-tag" onclick="selectTeam(this, 'ช่างไฟฟ้า', false)">ช่างไฟฟ้า</div>
-                    <div class="team-tag" onclick="selectTeam(this, 'ช่างประปา', false)">ช่างประปา</div>
-                    <div class="team-tag" onclick="selectTeam(this, 'ช่างฝ้า/เพดาน', false)">ช่างฝ้า</div>
-                    <div class="team-tag" onclick="selectTeam(this, 'ช่างกระเบื้อง', false)">ช่างกระเบื้อง</div>
-                    <div class="team-tag" onclick="selectTeam(this, '__other__', false)">อื่นๆ ...</div>
+                    <div class="team-tag" onclick="selectTeam(this, 'ช่างทาสี')">ช่างทาสี</div>
+                    <div class="team-tag" onclick="selectTeam(this, 'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+                    <div class="team-tag" onclick="selectTeam(this, 'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+                    <div class="team-tag" onclick="selectTeam(this, 'ช่างประปา')">ช่างประปา</div>
+                    <div class="team-tag" onclick="selectTeam(this, 'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+                    <div class="team-tag" onclick="selectTeam(this, 'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+                    <div class="team-tag" onclick="selectTeam(this, '__other__')">อื่นๆ ...</div>
                 </div>
                 <div class="custom-team-wrap" id="customTeamWrap">
                     <input type="text" id="customTeamInput" placeholder="ระบุทีม / ประเภทงาน">
@@ -940,12 +762,11 @@
             </div>
 
             <button class="btn-submit" onclick="saveDefect()">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                 บันทึกรายการ
             </button>
         </div>
 
-        <!-- LIST VIEW -->
         <div id="listView">
             <div class="list-stats" id="listStats" style="display:none">
                 <div class="stat-chip">
@@ -962,7 +783,7 @@
 
             <div class="empty-state" id="emptyState">
                 <div class="empty-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
                 <p>ยังไม่มีรายการ Defect</p>
                 <small>เริ่มเพิ่มรายการแรกได้เลย</small>
@@ -973,95 +794,24 @@
 
     <nav class="bottom-nav">
         <button class="nav-btn active" id="tab-form" onclick="switchTab('form')">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
             <span>เพิ่ม</span>
         </button>
         <button class="nav-btn" id="tab-list" onclick="switchTab('list')">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
             <span>รายการ</span>
             <div class="nav-dot" id="navDot"></div>
         </button>
     </nav>
 
     <div class="toast" id="toast"></div>
+
 </div>
 
-<!-- ── EDIT MODAL ── -->
-<div class="modal-overlay" id="editModal" onclick="closeEditOnOverlay(event)">
-    <div class="modal-sheet">
-        <div class="modal-header">
-            <div class="modal-title-group">
-                <div class="modal-eyebrow">แก้ไขรายการ</div>
-                <div class="modal-title" id="editModalTitle">DEF — 001</div>
-            </div>
-            <button class="modal-close" onclick="closeEditModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
-
-        <!-- Image in edit modal -->
-        <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
-        <div class="edit-img-wrap" onclick="document.getElementById('editPhotoInput').click()">
-            <img id="editImagePreview" src="" alt="" style="display:none">
-            <div class="edit-img-placeholder" id="editImgPlaceholder">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <span>แตะเพื่อเปลี่ยนรูป</span>
-            </div>
-            <div class="edit-img-overlay">
-                <span>เปลี่ยนรูปภาพ</span>
-            </div>
-        </div>
-
-        <div class="field">
-            <label>Zone / ตำแหน่ง <span class="req">*</span></label>
-            <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
-        </div>
-
-        <div class="field">
-            <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
-            <div class="team-tags" id="editTeamTags">
-                <div class="team-tag" onclick="selectEditTeam(this,'ช่างทาสี')">ช่างทาสี</div>
-                <div class="team-tag" onclick="selectEditTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-                <div class="team-tag" onclick="selectEditTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-                <div class="team-tag" onclick="selectEditTeam(this,'ช่างประปา')">ช่างประปา</div>
-                <div class="team-tag" onclick="selectEditTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-                <div class="team-tag" onclick="selectEditTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-                <div class="team-tag" onclick="selectEditTeam(this,'__other__')">อื่นๆ ...</div>
-            </div>
-            <div class="custom-team-wrap" id="editCustomTeamWrap">
-                <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
-            </div>
-        </div>
-
-        <div class="field">
-            <label>รายการที่ต้องแก้ <span class="req">*</span></label>
-            <textarea id="editDetails" placeholder="รายละเอียด"></textarea>
-        </div>
-
-        <div class="field">
-            <label>หมายเหตุ</label>
-            <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
-        </div>
-
-        <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeEditModal()">ยกเลิก</button>
-            <button class="btn-modal-save"   onclick="saveEdit()">บันทึก</button>
-            <button class="btn-modal-delete" onclick="deleteDefect()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                ลบรายการนี้
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- ── EXPORT MODAL ── -->
 <div class="modal-overlay" id="exportModal" onclick="closeExportOnOverlay(event)">
     <div class="modal-sheet">
         <div class="modal-header">
-            <div class="modal-title-group">
-                <div class="modal-eyebrow">Download</div>
-                <div class="modal-title">ส่งออกรายงาน</div>
-            </div>
+            <span class="modal-title">ส่งออกรายงาน</span>
             <button class="modal-close" onclick="closeExportModal()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
@@ -1089,7 +839,6 @@
     </div>
 </div>
 
-<!-- ── LOADING ── -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <div class="loading-text">กำลังสร้างไฟล์...</div>
@@ -1097,25 +846,16 @@
 </div>
 
 <script>
-    let defectsData    = [];
+    let defectsData = [];
     let currentImageDataURL = null;
-    let selectedTeam   = null;
-    let isCustomTeam   = false;
-
-    // Edit state
-    let editingId         = null;
-    let editImageDataURL  = null;
-    let editSelectedTeam  = null;
-    let editIsCustomTeam  = false;
+    let selectedTeam = null;
+    let isCustomTeam = false;
 
     const ITEMS_PER_PAGE = 6;
-    const PRESET_TEAMS = ['ช่างทาสี','ช่างปูน/โครงสร้าง','ช่างไฟฟ้า','ช่างประปา','ช่างฝ้า/เพดาน','ช่างกระเบื้อง'];
 
-    /* ──────────────────────────────────────────
-       TEAM SELECTION (add form)
-    ────────────────────────────────────────── */
-    function selectTeam(el, value, isEdit) {
-        document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
+    // TEAM SELECTION
+    function selectTeam(el, value) {
+        document.querySelectorAll('.team-tag').forEach(t => t.classList.remove('selected'));
         el.classList.add('selected');
         const wrap = document.getElementById('customTeamWrap');
         if (value === '__other__') {
@@ -1135,33 +875,7 @@
         return selectedTeam;
     }
 
-    /* ──────────────────────────────────────────
-       TEAM SELECTION (edit modal)
-    ────────────────────────────────────────── */
-    function selectEditTeam(el, value) {
-        document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
-        el.classList.add('selected');
-        const wrap = document.getElementById('editCustomTeamWrap');
-        if (value === '__other__') {
-            editIsCustomTeam = true;
-            editSelectedTeam = null;
-            wrap.classList.add('open');
-            setTimeout(() => document.getElementById('editCustomTeamInput').focus(), 50);
-        } else {
-            editIsCustomTeam = false;
-            editSelectedTeam = value;
-            wrap.classList.remove('open');
-        }
-    }
-
-    function getEditTeam() {
-        if (editIsCustomTeam) return document.getElementById('editCustomTeamInput').value.trim();
-        return editSelectedTeam;
-    }
-
-    /* ──────────────────────────────────────────
-       IMAGE UPLOAD (add form)
-    ────────────────────────────────────────── */
+    // IMAGE UPLOAD
     function triggerUpload() {
         document.getElementById('photoInput').click();
     }
@@ -1193,36 +907,17 @@
         document.getElementById('uploadArea').classList.remove('has-image');
     }
 
-    /* ──────────────────────────────────────────
-       IMAGE UPLOAD (edit modal)
-    ────────────────────────────────────────── */
-    function editPreviewImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            editImageDataURL = e.target.result;
-            const preview = document.getElementById('editImagePreview');
-            preview.src = editImageDataURL;
-            preview.style.display = 'block';
-            document.getElementById('editImgPlaceholder').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
-
-    /* ──────────────────────────────────────────
-       SAVE NEW DEFECT
-    ────────────────────────────────────────── */
+    // SAVE DEFECT
     function saveDefect() {
         const location = document.getElementById('location').value.trim();
-        const details  = document.getElementById('details').value.trim();
-        const team     = getSelectedTeam();
-        const remarks  = document.getElementById('remarks').value.trim();
+        const details = document.getElementById('details').value.trim();
+        const team = getSelectedTeam();
+        const remarks = document.getElementById('remarks').value.trim();
 
         if (!currentImageDataURL) { showToast('⚠ กรุณาถ่ายรูปก่อนบันทึก'); return; }
-        if (!location)            { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
-        if (!team)                { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
-        if (!details)             { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
+        if (!location) { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
+        if (!team) { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
+        if (!details) { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
 
         const defect = {
             id: defectsData.length + 1,
@@ -1236,155 +931,24 @@
         renderList();
         showToast('✓ บันทึกสำเร็จ');
 
-        // Reset
+        // Reset form
         document.getElementById('location').value = '';
-        document.getElementById('details').value  = '';
-        document.getElementById('remarks').value  = '';
+        document.getElementById('details').value = '';
+        document.getElementById('remarks').value = '';
         document.getElementById('customTeamInput').value = '';
-        document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
+        document.querySelectorAll('.team-tag').forEach(t => t.classList.remove('selected'));
         document.getElementById('customTeamWrap').classList.remove('open');
-        selectedTeam  = null;
-        isCustomTeam  = false;
+        selectedTeam = null;
+        isCustomTeam = false;
         clearImage(new Event('click'));
         document.getElementById('mainScroll').scrollTop = 0;
     }
 
-    /* ──────────────────────────────────────────
-       OPEN EDIT MODAL
-    ────────────────────────────────────────── */
-    function openEditModal(id) {
-        const d = defectsData.find(x => x.id === id);
-        if (!d) return;
-
-        editingId = id;
-
-        // Title
-        document.getElementById('editModalTitle').textContent =
-            'DEF — ' + String(d.id).padStart(3, '0');
-
-        // Image
-        editImageDataURL = d.image;
-        const eprev = document.getElementById('editImagePreview');
-        if (d.image) {
-            eprev.src = d.image;
-            eprev.style.display = 'block';
-            document.getElementById('editImgPlaceholder').style.display = 'none';
-        } else {
-            eprev.style.display = 'none';
-            document.getElementById('editImgPlaceholder').style.display = 'flex';
-        }
-
-        // Fields
-        document.getElementById('editLocation').value = d.location;
-        document.getElementById('editDetails').value  = d.details;
-        document.getElementById('editRemarks').value  = d.remarks || '';
-
-        // Team tags
-        editIsCustomTeam = false;
-        editSelectedTeam = null;
-        document.getElementById('editCustomTeamWrap').classList.remove('open');
-        document.getElementById('editCustomTeamInput').value = '';
-
-        const isPreset = PRESET_TEAMS.includes(d.team);
-        document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
-
-        if (isPreset) {
-            editSelectedTeam = d.team;
-            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
-                // match by data attribute approach: use text content check
-                if (t.textContent.trim() === shortName(d.team)) {
-                    t.classList.add('selected');
-                }
-            });
-        } else {
-            // custom
-            editIsCustomTeam = true;
-            editSelectedTeam = null;
-            document.getElementById('editCustomTeamInput').value = d.team;
-            document.getElementById('editCustomTeamWrap').classList.add('open');
-            // select "อื่นๆ" tag
-            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
-                if (t.textContent.trim() === 'อื่นๆ ...') t.classList.add('selected');
-            });
-        }
-
-        document.getElementById('editModal').classList.add('open');
-    }
-
-    // Map full team name to short display label
-    function shortName(team) {
-        const map = {
-            'ช่างทาสี': 'ช่างทาสี',
-            'ช่างปูน/โครงสร้าง': 'ช่างปูน',
-            'ช่างไฟฟ้า': 'ช่างไฟฟ้า',
-            'ช่างประปา': 'ช่างประปา',
-            'ช่างฝ้า/เพดาน': 'ช่างฝ้า',
-            'ช่างกระเบื้อง': 'ช่างกระเบื้อง'
-        };
-        return map[team] || team;
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.remove('open');
-        document.getElementById('editPhotoInput').value = '';
-        editingId = null;
-    }
-
-    function closeEditOnOverlay(e) {
-        if (e.target === document.getElementById('editModal')) closeEditModal();
-    }
-
-    /* ──────────────────────────────────────────
-       SAVE EDIT
-    ────────────────────────────────────────── */
-    function saveEdit() {
-        const location = document.getElementById('editLocation').value.trim();
-        const details  = document.getElementById('editDetails').value.trim();
-        const team     = getEditTeam();
-        const remarks  = document.getElementById('editRemarks').value.trim();
-
-        if (!location) { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
-        if (!team)     { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
-        if (!details)  { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
-
-        const idx = defectsData.findIndex(x => x.id === editingId);
-        if (idx === -1) return;
-
-        defectsData[idx] = {
-            ...defectsData[idx],
-            location, details, team, remarks,
-            image: editImageDataURL || defectsData[idx].image,
-            edited: true,
-            editedAt: new Date().toISOString()
-        };
-
-        closeEditModal();
-        renderList();
-        showToast('✓ แก้ไขสำเร็จ');
-    }
-
-    /* ──────────────────────────────────────────
-       DELETE DEFECT
-    ────────────────────────────────────────── */
-    function deleteDefect() {
-        if (!confirm('ต้องการลบรายการนี้ใช่ไหม?')) return;
-        defectsData = defectsData.filter(x => x.id !== editingId);
-        // Re-number
-        defectsData.forEach((d, i) => { d.id = i + 1; });
-        closeEditModal();
-        renderList();
-        updateBadge();
-        updateListHeader();
-        showToast('ลบรายการแล้ว');
-    }
-
-    /* ──────────────────────────────────────────
-       RENDER LIST
-    ────────────────────────────────────────── */
+    // RENDER LIST
     function renderList() {
         const container = document.getElementById('defectsContainer');
-        const empty  = document.getElementById('emptyState');
-        const stats  = document.getElementById('listStats');
+        const empty = document.getElementById('emptyState');
+        const stats = document.getElementById('listStats');
         container.innerHTML = '';
 
         if (defectsData.length === 0) {
@@ -1406,14 +970,11 @@
 
             container.innerHTML += `
                 <div class="defect-card">
-                    ${d.image ? `<img class="card-image" src="${d.image}" alt="defect ${d.id}" loading="lazy">` : ''}
+                    <img class="card-image" src="${d.image}" alt="defect ${d.id}">
                     <div class="card-body">
                         <div class="card-header">
                             <span class="card-id">DEF — ${String(d.id).padStart(3,'0')}</span>
-                            <div class="card-meta">
-                                <span class="card-date">${dateStr}</span>
-                                <button class="btn-edit" onclick="openEditModal(${d.id})">Edit</button>
-                            </div>
+                            <span class="card-date">${dateStr}</span>
                         </div>
                         <div class="card-location">📍 ${d.location}</div>
                         <div class="card-details">${d.details}</div>
@@ -1427,58 +988,64 @@
         });
     }
 
-    /* ──────────────────────────────────────────
-       TAB SWITCH
-    ────────────────────────────────────────── */
+    // TAB SWITCH
     function switchTab(tab) {
+        const formView = document.getElementById('formView');
+        const listView = document.getElementById('listView');
+
         if (tab === 'form') {
-            document.getElementById('formView').style.display = 'block';
-            document.getElementById('listView').style.display = 'none';
-            document.getElementById('headerEyebrow').textContent = 'KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP';
-            document.getElementById('headerTitle').textContent   = 'Defect Log';
+            formView.style.display = 'block';
+            listView.style.display = 'none';
+            document.getElementById('headerEyebrow').textContent = 'Quality Control';
+            document.getElementById('headerTitle').textContent = 'Defect Log';
             document.getElementById('exportBtn').classList.remove('visible');
             document.getElementById('countChip').style.display = 'none';
             document.getElementById('tab-form').classList.add('active');
             document.getElementById('tab-list').classList.remove('active');
         } else {
-            document.getElementById('formView').style.display = 'none';
-            document.getElementById('listView').style.display = 'block';
+            formView.style.display = 'none';
+            listView.style.display = 'block';
             document.getElementById('headerEyebrow').textContent = 'All Records';
-            document.getElementById('headerTitle').textContent   = 'รายการทั้งหมด';
+            document.getElementById('headerTitle').textContent = 'รายการทั้งหมด';
             document.getElementById('tab-list').classList.add('active');
             document.getElementById('tab-form').classList.remove('active');
-            updateListHeader();
+
+            if (defectsData.length > 0) {
+                document.getElementById('exportBtn').classList.add('visible');
+                document.getElementById('countChip').style.display = 'block';
+                document.getElementById('countNum').textContent = defectsData.length;
+            } else {
+                document.getElementById('exportBtn').classList.remove('visible');
+                document.getElementById('countChip').style.display = 'none';
+            }
+
             renderList();
         }
     }
 
-    function updateListHeader() {
-        if (defectsData.length > 0) {
-            document.getElementById('exportBtn').classList.add('visible');
-            document.getElementById('countChip').style.display = 'block';
-            document.getElementById('countNum').textContent = defectsData.length;
-        } else {
-            document.getElementById('exportBtn').classList.remove('visible');
-            document.getElementById('countChip').style.display = 'none';
-        }
-    }
-
+    // BADGE
     function updateBadge() {
-        document.getElementById('navDot').classList.toggle('visible', defectsData.length > 0);
+        const dot = document.getElementById('navDot');
+        dot.classList.toggle('visible', defectsData.length > 0);
     }
 
-    /* ──────────────────────────────────────────
-       EXPORT MODAL
-    ────────────────────────────────────────── */
-    function openExportModal()  { document.getElementById('exportModal').classList.add('open'); }
-    function closeExportModal() { document.getElementById('exportModal').classList.remove('open'); }
+    // EXPORT MODAL
+    function openExportModal() {
+        document.getElementById('exportModal').classList.add('open');
+    }
+
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.remove('open');
+    }
+
     function closeExportOnOverlay(e) {
         if (e.target === document.getElementById('exportModal')) closeExportModal();
     }
 
-    /* ──────────────────────────────────────────
-       PDF EXPORT
-    ────────────────────────────────────────── */
+    // ============================================================
+    // PDF EXPORT — pure jsPDF, fixed card sizes, editable fields
+    // ============================================================
+
     function loadImage(dataURL) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -1492,77 +1059,102 @@
         const iR = img.width / img.height;
         const bR = w / h;
         let sx, sy, sw, sh;
-        if (iR > bR) { sh = img.height; sw = sh * bR; sx = (img.width - sw)/2; sy = 0; }
-        else         { sw = img.width;  sh = sw / bR; sx = 0; sy = (img.height - sh)/2; }
+        if (iR > bR) { sh = img.height; sw = sh * bR; sx = (img.width - sw) / 2; sy = 0; }
+        else          { sw = img.width;  sh = sw / bR; sx = 0; sy = (img.height - sh) / 2; }
         ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
     }
 
     async function exportPDF() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
+
         document.getElementById('loadingOverlay').classList.add('show');
 
         try {
             const { jsPDF } = window.jspdf;
+
+            // ── Layout constants (mm) ──
             const PW = 210, PH = 297;
-            const MARGIN = 12, COL_GAP = 5;
-            const COL_W  = (PW - MARGIN*2 - COL_GAP) / 2;
-            const CARD_H = 72, IMG_H = 43, NUM_W = 8;
-            const TBL_H  = CARD_H - IMG_H;
-            const ROW_H  = TBL_H / 3;
-            const LABEL_W = COL_W * 0.27;
+            const MARGIN   = 12;
+            const COL_GAP  = 5;
+            const COL_W    = (PW - MARGIN * 2 - COL_GAP) / 2;  // 86.5 mm
+
+            // Fixed card — same size always
+            const CARD_H   = 72;
+            const IMG_H    = 43;
+            const NUM_W    = 8;
+            const TBL_H    = CARD_H - IMG_H;   // 29 mm
+            const ROW_H    = TBL_H / 3;        // ~9.67 mm per row
+            const LABEL_W  = COL_W * 0.27;
             const CARD_GAP = 5;
-            const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
+            const HEADER_H = 22;               // reserved for page header
+
             const now = new Date();
             const dateStr = now.toLocaleDateString('th-TH');
+            const totalPages = Math.ceil(defectsData.length / ITEMS_PER_PAGE);
 
+            // Build PDF page by page
             const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
             for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
                 if (pageIdx > 0) pdf.addPage();
-                const pageItems = defectsData.slice(pageIdx * ITEMS_PER_PAGE, (pageIdx+1) * ITEMS_PER_PAGE);
 
+                const pageItems = defectsData.slice(
+                    pageIdx * ITEMS_PER_PAGE,
+                    (pageIdx + 1) * ITEMS_PER_PAGE
+                );
+
+                // ── Header ──
                 let hy = MARGIN;
-                pdf.setFont('helvetica','normal');
+
+                pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(6.5);
-                pdf.setTextColor(185,183,180);
-                pdf.text('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW/2, hy, { align:'center' });
+                pdf.setTextColor(185, 183, 180);
+                pdf.text('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW / 2, hy, { align: 'center' });
                 hy += 5;
-                pdf.setFont('times','bold');
-                pdf.setFontSize(16);
-                pdf.setTextColor(28,27,24);
-                pdf.text('Defect Report', PW/2, hy, { align:'center' });
+
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(15);
+                pdf.setTextColor(26, 25, 22);
+                pdf.text('Defect Report', PW / 2, hy, { align: 'center' });
                 hy += 5;
-                pdf.setFont('helvetica','normal');
+
+                pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(7.5);
-                pdf.setTextColor(155,155,155);
-                pdf.text(`Generated ${dateStr}  —  ${defectsData.length} items total`, PW/2, hy, { align:'center' });
+                pdf.setTextColor(155, 155, 155);
+                pdf.text(`Generated ${dateStr}  —  ${defectsData.length} items total`, PW / 2, hy, { align: 'center' });
                 hy += 3.5;
+
                 pdf.setFontSize(6.5);
-                pdf.setTextColor(195,195,195);
-                pdf.text(`PAGE ${pageIdx+1} / ${totalPages}`, PW/2, hy, { align:'center' });
+                pdf.setTextColor(195, 195, 195);
+                pdf.text(`PAGE ${pageIdx + 1} / ${totalPages}`, PW / 2, hy, { align: 'center' });
                 hy += 5.5;
 
                 const gridTop = hy;
 
+                // ── Draw each card ──
                 for (let i = 0; i < pageItems.length; i++) {
                     const d = pageItems[i];
                     const col = i % 2;
                     const row = Math.floor(i / 2);
-                    const cx  = MARGIN + col * (COL_W + COL_GAP);
-                    const cy  = gridTop + row * (CARD_H + CARD_GAP);
 
-                    pdf.setDrawColor(215,212,207);
+                    const cx = MARGIN + col * (COL_W + COL_GAP);
+                    const cy = gridTop + row * (CARD_H + CARD_GAP);
+
+                    // Card border
+                    pdf.setDrawColor(215, 212, 207);
                     pdf.setLineWidth(0.3);
-                    pdf.rect(cx, cy, COL_W, CARD_H, 'S');
+                    pdf.roundedRect(cx, cy, COL_W, CARD_H, 2, 2, 'S');
 
-                    pdf.setFillColor(28,27,24);
+                    // Number strip
+                    pdf.setFillColor(26, 25, 22);
                     pdf.rect(cx, cy, NUM_W, IMG_H, 'F');
-                    pdf.setFont('times','bold');
+                    pdf.setFont('helvetica', 'bold');
                     pdf.setFontSize(9);
-                    pdf.setTextColor(255,255,255);
-                    pdf.text(String(d.id), cx + NUM_W/2, cy + IMG_H/2 + 1.5, { align:'center' });
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.text(String(d.id), cx + NUM_W / 2, cy + IMG_H / 2 + 1.5, { align: 'center' });
 
+                    // Photo
                     const imgX = cx + NUM_W;
                     const imgW = COL_W - NUM_W;
                     if (d.image) {
@@ -1573,83 +1165,98 @@
                             cvs.height = Math.round(IMG_H * 2 * 3.78);
                             drawImageCover(cvs.getContext('2d'), img, 0, 0, cvs.width, cvs.height);
                             pdf.addImage(cvs.toDataURL('image/jpeg', 0.85), 'JPEG', imgX, cy, imgW, IMG_H);
-                        } catch(_) {
-                            pdf.setFillColor(235,235,235);
+                        } catch (_) {
+                            pdf.setFillColor(235, 235, 235);
                             pdf.rect(imgX, cy, imgW, IMG_H, 'F');
                         }
                     }
 
-                    pdf.setDrawColor(215,212,207);
+                    // Divider
+                    pdf.setDrawColor(215, 212, 207);
                     pdf.setLineWidth(0.3);
                     pdf.line(cx, cy + IMG_H, cx + COL_W, cy + IMG_H);
 
+                    // Three data rows — fixed height
                     const fields = [
-                        { label:'ZONE',   value: d.location },
-                        { label:'TEAM',   value: d.team },
-                        { label:'DETAIL', value: d.details + (d.remarks ? '  '+d.remarks : '') }
+                        { label: 'ZONE',   value: d.location },
+                        { label: 'TEAM',   value: d.team },
+                        { label: 'DETAIL', value: d.details + (d.remarks ? '  ' + d.remarks : '') }
                     ];
 
                     fields.forEach((f, fi) => {
                         const ry = cy + IMG_H + fi * ROW_H;
+
+                        // Row divider
                         if (fi > 0) {
-                            pdf.setDrawColor(228,225,220);
+                            pdf.setDrawColor(228, 225, 220);
                             pdf.setLineWidth(0.2);
                             pdf.line(cx, ry, cx + COL_W, ry);
                         }
-                        pdf.setDrawColor(228,225,220);
+
+                        // Label | value divider
+                        pdf.setDrawColor(228, 225, 220);
                         pdf.setLineWidth(0.2);
                         pdf.line(cx + LABEL_W, ry, cx + LABEL_W, ry + ROW_H);
 
-                        pdf.setFont('helvetica','normal');
+                        // Label text (static)
+                        pdf.setFont('helvetica', 'normal');
                         pdf.setFontSize(5.5);
-                        pdf.setTextColor(165,162,157);
-                        pdf.text(f.label, cx + 2, ry + ROW_H/2 + 0.6, { baseline:'middle' });
+                        pdf.setTextColor(165, 162, 157);
+                        pdf.text(f.label, cx + 2, ry + ROW_H / 2 + 0.6, { baseline: 'middle' });
 
+                        // ── Editable field area ──
+                        // Draw a subtle highlight rect so user knows it's editable
                         const fx = cx + LABEL_W + 0.8;
                         const fy = ry + 0.8;
                         const fw = COL_W - LABEL_W - 1.6;
                         const fh = ROW_H - 1.6;
 
-                        pdf.setFillColor(250,250,248);
+                        // Light blue tint to show editability
+                        pdf.setFillColor(248, 250, 255);
                         pdf.rect(fx, fy, fw, fh, 'F');
 
-                        pdf.setFont('helvetica','normal');
+                        // Pre-filled value text — selectable in PDF
+                        pdf.setFont('helvetica', 'normal');
                         pdf.setFontSize(6.8);
-                        pdf.setTextColor(28,27,24);
+                        pdf.setTextColor(26, 25, 22);
 
+                        // Clip long text to one line (DETAIL can be 2 lines)
                         const maxW = fw - 1.5;
                         const fullText = String(f.value);
 
                         if (fi === 2) {
+                            // DETAIL: allow 2 lines
                             const words = fullText.split(/\s+/);
                             let line1 = '', line2 = '';
                             let onLine2 = false;
                             for (const w of words) {
-                                const test1 = line1 ? line1+' '+w : w;
+                                const test1 = line1 ? line1 + ' ' + w : w;
                                 if (!onLine2 && pdf.getTextWidth(test1) <= maxW) {
                                     line1 = test1;
                                 } else {
                                     onLine2 = true;
-                                    const test2 = line2 ? line2+' '+w : w;
+                                    const test2 = line2 ? line2 + ' ' + w : w;
                                     if (pdf.getTextWidth(test2) <= maxW) line2 = test2;
                                     else {
-                                        while (pdf.getTextWidth(line2+'…') > maxW && line2.length > 0)
-                                            line2 = line2.slice(0,-1);
+                                        // truncate
+                                        while (pdf.getTextWidth(line2 + '…') > maxW && line2.length > 0)
+                                            line2 = line2.slice(0, -1);
                                         line2 += '…';
                                         break;
                                     }
                                 }
                             }
                             const lineH = 3.1;
-                            const startY = fy + (fh - (line2 ? lineH*2 : lineH))/2 + lineH*0.75;
-                            pdf.text(line1, fx+1, startY);
-                            if (line2) pdf.text(line2, fx+1, startY+lineH);
+                            const startY = fy + (fh - (line2 ? lineH * 2 : lineH)) / 2 + lineH * 0.75;
+                            pdf.text(line1, fx + 1, startY);
+                            if (line2) pdf.text(line2, fx + 1, startY + lineH);
                         } else {
+                            // ZONE / TEAM: single line, truncate if needed
                             let display = fullText;
                             while (display.length > 1 && pdf.getTextWidth(display) > maxW)
-                                display = display.slice(0,-1);
-                            if (display !== fullText) display = display.slice(0,-1)+'…';
-                            pdf.text(display, fx+1, fy+fh/2+0.8, { baseline:'middle' });
+                                display = display.slice(0, -1);
+                            if (display !== fullText) display = display.slice(0, -1) + '…';
+                            pdf.text(display, fx + 1, fy + fh / 2 + 0.8, { baseline: 'middle' });
                         }
                     });
                 }
@@ -1659,101 +1266,108 @@
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('✓ ดาวน์โหลด PDF สำเร็จ');
 
-        } catch(err) {
-            console.error(err);
+        } catch (err) {
+            console.error('PDF export error:', err);
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
         }
     }
 
-    /* ──────────────────────────────────────────
-       EXCEL EXPORT
-    ────────────────────────────────────────── */
+    // EXCEL EXPORT
     async function exportExcel() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
+
         document.getElementById('loadingOverlay').classList.add('show');
 
         try {
             const workbook = new ExcelJS.Workbook();
-            const sheet = workbook.addWorksheet('Defect Report', { views:[{ showGridLines:false }] });
+            const sheet = workbook.addWorksheet('Defect Report', {
+                views: [{ showGridLines: false }]
+            });
 
             sheet.columns = [
-                { header:'ลำดับ',         key:'id',       width:8  },
-                { header:'รูปภาพ Defect', key:'image',    width:35 },
-                { header:'Zone (ตำแหน่ง)',key:'location', width:25 },
-                { header:'หมวดงาน',       key:'team',     width:20 },
-                { header:'รายการ',        key:'details',  width:45 },
-                { header:'หมายเหตุ',      key:'remarks',  width:25 },
-                { header:'วันที่บันทึก',  key:'date',     width:20 }
+                { header: 'ลำดับ', key: 'id', width: 8 },
+                { header: 'รูปภาพ Defect', key: 'image', width: 35 },
+                { header: 'Zone (ตำแหน่ง)', key: 'location', width: 25 },
+                { header: 'หมวดงาน', key: 'team', width: 20 },
+                { header: 'รายการ', key: 'details', width: 45 },
+                { header: 'หมายเหตุ', key: 'remarks', width: 25 },
+                { header: 'วันที่บันทึก', key: 'date', width: 20 }
             ];
 
             const headerRow = sheet.getRow(1);
             headerRow.height = 30;
-            headerRow.font = { name:'Sarabun', size:12, bold:true, color:{ argb:'FFFFFFFF' } };
-            headerRow.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1C1B18' } };
-            headerRow.alignment = { vertical:'middle', horizontal:'center' };
+            headerRow.font = { name: 'Sarabun', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1916' } };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
             defectsData.forEach((d, index) => {
                 const rowIndex = index + 2;
                 const row = sheet.getRow(rowIndex);
+
                 row.height = 110;
+
                 row.getCell('A').value = d.id;
                 row.getCell('C').value = d.location;
                 row.getCell('D').value = d.team;
                 row.getCell('E').value = d.details;
-                row.getCell('F').value = d.remarks || '-';
+                row.getCell('F').value = d.remarks || "-";
                 row.getCell('G').value = new Date(d.timestamp).toLocaleString('th-TH');
-                row.alignment = { vertical:'middle', horizontal:'left', wrapText:true };
-                row.getCell('A').alignment = { vertical:'middle', horizontal:'center' };
-                row.getCell('G').alignment = { vertical:'middle', horizontal:'center' };
+
+                row.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+                row.getCell('A').alignment = { vertical: 'middle', horizontal: 'center' };
+                row.getCell('G').alignment = { vertical: 'middle', horizontal: 'center' };
 
                 if (d.image) {
-                    const mimeType  = d.image.substring('data:image/'.length, d.image.indexOf(';base64'));
+                    const mimeType = d.image.substring("data:image/".length, d.image.indexOf(";base64"));
                     const base64Data = d.image.split('base64,')[1];
-                    const extension  = mimeType === 'jpeg' ? 'jpeg' : 'png';
-                    const imageId = workbook.addImage({ base64: base64Data, extension });
+                    const extension = mimeType === 'jpeg' ? 'jpeg' : 'png';
+
+                    const imageId = workbook.addImage({
+                        base64: base64Data,
+                        extension: extension,
+                    });
+
                     sheet.addImage(imageId, {
-                        tl: { col:1.1, row: rowIndex - 1 + 0.1 },
-                        ext: { width:220, height:125 },
-                        editAs:'oneCell'
+                        tl: { col: 1.1, row: rowIndex - 1 + 0.1 },
+                        ext: { width: 220, height: 125 },
+                        editAs: 'oneCell'
                     });
                 }
 
-                row.eachCell({ includeEmpty:true }, (cell) => {
+                row.eachCell({ includeEmpty: true }, (cell) => {
                     cell.border = {
-                        top:    { style:'thin', color:{ argb:'FFD4D4D4' } },
-                        left:   { style:'thin', color:{ argb:'FFD4D4D4' } },
-                        bottom: { style:'thin', color:{ argb:'FFD4D4D4' } },
-                        right:  { style:'thin', color:{ argb:'FFD4D4D4' } }
+                        top: { style: 'thin', color: { argb: 'FFD4D4D4' } },
+                        left: { style: 'thin', color: { argb: 'FFD4D4D4' } },
+                        bottom: { style: 'thin', color: { argb: 'FFD4D4D4' } },
+                        right: { style: 'thin', color: { argb: 'FFD4D4D4' } }
                     };
                 });
             });
 
-            headerRow.eachCell({ includeEmpty:true }, (cell) => {
+            headerRow.eachCell({ includeEmpty: true }, (cell) => {
                 cell.border = {
-                    top:{ style:'thin' }, left:{ style:'thin' },
-                    bottom:{ style:'thin' }, right:{ style:'thin' }
+                    top: { style: 'thin' }, left: { style: 'thin' },
+                    bottom: { style: 'thin' }, right: { style: 'thin' }
                 };
             });
 
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             saveAs(blob, `Defect_Report_${Date.now()}.xlsx`);
 
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('✓ ดาวน์โหลด Excel สำเร็จ');
 
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('❌ เกิดข้อผิดพลาดในการสร้าง Excel');
         }
     }
 
-    /* ──────────────────────────────────────────
-       TOAST
-    ────────────────────────────────────────── */
+    // TOAST
     function showToast(msg) {
         const toast = document.getElementById('toast');
         toast.textContent = msg;
