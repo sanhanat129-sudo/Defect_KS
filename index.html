@@ -1685,19 +1685,15 @@
     // EXCEL EXPORT — FIXED VERSION
     // ════════════════════════════════════════════════════════════════
 
-    // Resize any image dataURL → PNG base64 (ExcelJS-safe)
-    function resizeImageToPng(dataURL, maxW, maxH) {
+    // Convert any image dataURL → PNG base64 (ExcelJS-safe, full quality)
+    function convertToPng(dataURL) {
         return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
-                const scale = Math.min(maxW / img.width, maxH / img.height, 1);
-                const w = Math.round(img.width  * scale);
-                const h = Math.round(img.height * scale);
                 const c = document.createElement('canvas');
-                c.width  = w;
-                c.height = h;
-                c.getContext('2d').drawImage(img, 0, 0, w, h);
-                // Always output PNG — avoids 'jpg' vs 'jpeg' mismatch
+                c.width  = img.width;
+                c.height = img.height;
+                c.getContext('2d').drawImage(img, 0, 0);
                 resolve(c.toDataURL('image/png').split('base64,')[1]);
             };
             img.onerror = () => resolve(null);
@@ -1723,11 +1719,8 @@
                 }
             });
 
-            // Row height in points (1 pt ≈ 1.333px). 115pt ≈ 153px
-            const ROW_H_PT  = 115;
-            // Image pixel size — fits inside cell with small margin
-            const IMG_PX_W  = 230;
-            const IMG_PX_H  = 128;
+            // Row height in points (1 pt ≈ 1.333px). 150pt ≈ 200px
+            const ROW_H_PT  = 150;
 
             sheet.columns = [
                 { header: 'ลำดับ',            key: 'id',       width: 7  },
@@ -1797,20 +1790,17 @@
                 if (d.image) {
                     try {
                         // Convert to PNG (avoids 'jpg' / 'jpeg' extension bug in ExcelJS)
-                        const pngBase64 = await resizeImageToPng(d.image, IMG_PX_W, IMG_PX_H);
+                        const pngBase64 = await convertToPng(d.image);
                         if (pngBase64) {
                             const imageId = workbook.addImage({
                                 base64:    pngBase64,
-                                extension: 'png'           // ← must be 'png', 'jpeg', or 'gif'
+                                extension: 'png'
                             });
 
-                            // tl / br are 0-based col/row indices
-                            // tl = top-left corner of cell B in this data row
-                            // br = top-left corner of cell C in the NEXT row
-                            // Adding small offsets (0.08) keeps a 1-cell margin
+                            // Fill entire cell B — tl/br are 0-based col/row
                             sheet.addImage(imageId, {
-                                tl: { col: 1 + 0.08, row: (rowIndex - 1) + 0.08 },
-                                br: { col: 2 - 0.08, row: rowIndex        - 0.08 },
+                                tl: { col: 1, row: rowIndex - 1 },
+                                br: { col: 2, row: rowIndex     },
                                 editAs: 'oneCell'
                             });
                         }
