@@ -6,12 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Defect Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 ```
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
 <style>
     :root {
         --bg: #FFFFFF;
@@ -27,35 +26,58 @@
         --accent-2-light: #EBF5F2;
         --mono: 'IBM Plex Mono', monospace;
         --sans: 'IBM Plex Sans Thai', sans-serif;
+        --nav-h: 72px;
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
 
-    body {
-        font-family: var(--sans);
-        background: var(--bg);
-        color: var(--text-primary);
-        height: 100svh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    html, body {
+        width: 100%;
+        height: 100%;
         overflow: hidden;
     }
 
-    .app {
+    body {
+        font-family: var(--sans);
+        background: #E8E6E1;
+        color: var(--text-primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* ── Centered phone shell on desktop ── */
+    .phone-shell {
         width: 100%;
         max-width: 430px;
         height: 100%;
-        max-height: 100svh;
+        max-height: 100dvh;
         background: var(--bg);
         display: flex;
         flex-direction: column;
         position: relative;
+        overflow: hidden;
+        /* subtle shadow on desktop */
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.18);
     }
 
+    @media (min-width: 480px) {
+        .phone-shell {
+            max-height: min(900px, 95dvh);
+            border-radius: 32px;
+        }
+    }
+
+    /* ── Header ── */
     .header {
         background: var(--bg);
-        padding: 20px 24px 16px;
+        padding: 20px 20px 14px;
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
@@ -73,7 +95,7 @@
     }
 
     .header-left h1 {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 600;
         letter-spacing: -0.03em;
         color: var(--text-primary);
@@ -117,16 +139,18 @@
         letter-spacing: 0.05em;
     }
 
+    /* ── Scrollable main ── */
     main {
         flex: 1;
         overflow-y: auto;
+        overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 90px;
+        overscroll-behavior: contain;
     }
     main::-webkit-scrollbar { display: none; }
 
-    #formView { padding: 24px; }
-    #listView { padding: 16px 24px; display: none; }
+    #formView { padding: 20px; }
+    #listView { padding: 14px 20px; display: none; }
 
     .section-title {
         font-family: var(--mono);
@@ -134,9 +158,10 @@
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--text-muted);
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
 
+    /* ── Upload area ── */
     .upload-area {
         width: 100%;
         aspect-ratio: 16/9;
@@ -151,7 +176,7 @@
         overflow: hidden;
         position: relative;
         transition: border-color 0.2s, background 0.2s;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
     }
     .upload-area:active { background: #EEEEEE; }
     .upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
@@ -161,6 +186,7 @@
         flex-direction: column;
         align-items: center;
         gap: 10px;
+        pointer-events: none;
     }
 
     .upload-icon {
@@ -173,18 +199,8 @@
         justify-content: center;
     }
 
-    .upload-placeholder span {
-        font-size: 13px;
-        color: var(--text-muted);
-        font-weight: 400;
-    }
-
-    .upload-placeholder small {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--text-muted);
-        letter-spacing: 0.05em;
-    }
+    .upload-placeholder span { font-size: 13px; color: var(--text-muted); font-weight: 400; }
+    .upload-placeholder small { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.05em; }
 
     #imagePreview {
         position: absolute;
@@ -199,7 +215,7 @@
         position: absolute;
         top: 10px;
         right: 10px;
-        background: rgba(255,255,255,0.9);
+        background: rgba(255,255,255,0.92);
         backdrop-filter: blur(8px);
         border: 1px solid rgba(0,0,0,0.08);
         border-radius: 6px;
@@ -211,18 +227,17 @@
         cursor: pointer;
         z-index: 10;
         color: var(--text-primary);
-        transition: background 0.15s;
     }
-    .remove-img-btn:active { background: white; }
 
-    .field { margin-bottom: 16px; }
+    /* ── Form fields ── */
+    .field { margin-bottom: 14px; }
 
     .field label {
         display: block;
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 500;
         color: var(--text-secondary);
-        letter-spacing: 0.03em;
+        letter-spacing: 0.05em;
         margin-bottom: 6px;
         font-family: var(--mono);
         text-transform: uppercase;
@@ -242,22 +257,21 @@
         outline: none;
         transition: border-color 0.2s, box-shadow 0.2s;
         -webkit-appearance: none;
+        -webkit-font-smoothing: antialiased;
     }
-
     input[type="text"]::placeholder, textarea::placeholder { color: var(--text-muted); }
-
     input[type="text"]:focus, textarea:focus {
         border-color: var(--text-primary);
         box-shadow: 0 0 0 3px rgba(26,25,22,0.06);
     }
-
     textarea { resize: none; min-height: 80px; }
 
+    /* ── Team tags ── */
     .team-tag-label {
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 500;
         color: var(--text-secondary);
-        letter-spacing: 0.03em;
+        letter-spacing: 0.05em;
         margin-bottom: 10px;
         display: block;
         font-family: var(--mono);
@@ -268,12 +282,12 @@
     .team-tags {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
+        gap: 7px;
+        margin-bottom: 14px;
     }
 
     .team-tag {
-        padding: 7px 13px;
+        padding: 7px 12px;
         border-radius: 8px;
         background: var(--surface);
         border: 1.5px solid var(--border);
@@ -284,8 +298,9 @@
         transition: all 0.15s;
         user-select: none;
         -webkit-user-select: none;
+        line-height: 1;
     }
-    .team-tag:active { transform: scale(0.97); }
+    .team-tag:active { transform: scale(0.96); }
     .team-tag.selected {
         background: var(--text-primary);
         border-color: var(--text-primary);
@@ -294,14 +309,15 @@
     }
 
     .custom-team-wrap {
-        margin-top: 8px;
-        margin-bottom: 16px;
+        margin-top: 6px;
+        margin-bottom: 14px;
         overflow: hidden;
         max-height: 0;
         transition: max-height 0.25s ease;
     }
     .custom-team-wrap.open { max-height: 60px; }
 
+    /* ── Submit button ── */
     .btn-submit {
         width: 100%;
         background: var(--text-primary);
@@ -319,14 +335,16 @@
         gap: 8px;
         letter-spacing: -0.01em;
         transition: opacity 0.15s;
-        margin-top: 24px;
+        margin-top: 20px;
+        margin-bottom: 8px;
     }
     .btn-submit:active { opacity: 0.8; }
 
+    /* ── List stats ── */
     .list-stats {
         display: flex;
         gap: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .stat-chip {
@@ -339,7 +357,7 @@
 
     .stat-chip .stat-num {
         font-family: var(--mono);
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 500;
         color: var(--text-primary);
         line-height: 1;
@@ -352,12 +370,13 @@
         letter-spacing: 0.03em;
     }
 
+    /* ── Defect cards ── */
     .defect-card {
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
         overflow: hidden;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .card-image {
@@ -368,13 +387,13 @@
         background: var(--surface-2);
     }
 
-    .card-body { padding: 14px 16px; }
+    .card-body { padding: 12px 14px; }
 
     .card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .card-id {
@@ -386,18 +405,12 @@
         text-transform: uppercase;
     }
 
-    .card-date {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--text-muted);
-    }
-
     .card-location {
         font-size: 14px;
         font-weight: 600;
         color: var(--text-primary);
         letter-spacing: -0.02em;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .card-details {
@@ -428,8 +441,13 @@
         font-size: 10px;
         color: var(--text-muted);
         font-style: italic;
+        max-width: 55%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
+    /* ── Empty state ── */
     .empty-state {
         display: flex;
         flex-direction: column;
@@ -453,16 +471,21 @@
     .empty-state p { font-size: 14px; color: var(--text-secondary); margin-bottom: 6px; }
     .empty-state small { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
 
+    /* ── Bottom nav ── */
     .bottom-nav {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
         background: var(--bg);
         border-top: 1px solid var(--border);
-        padding: 10px 24px 20px;
+        padding: 8px 16px calc(8px + var(--safe-bottom));
         display: flex;
+        flex-shrink: 0;
         z-index: 20;
+    }
+
+    @media (min-width: 480px) {
+        .bottom-nav {
+            padding-bottom: 14px;
+            border-radius: 0 0 32px 32px;
+        }
     }
 
     .nav-btn {
@@ -482,7 +505,7 @@
     }
     .nav-btn.active { color: var(--text-primary); }
     .nav-btn span {
-        font-size: 10px;
+        font-size: 9.5px;
         font-weight: 500;
         letter-spacing: 0.05em;
         text-transform: uppercase;
@@ -492,7 +515,7 @@
     .nav-dot {
         position: absolute;
         top: 6px;
-        right: 22px;
+        right: 20px;
         width: 6px;
         height: 6px;
         border-radius: 50%;
@@ -501,36 +524,42 @@
     }
     .nav-dot.visible { display: block; }
 
+    /* ── Modals ── */
     .modal-overlay {
-        position: fixed;
+        position: absolute;
         inset: 0;
         background: rgba(26,25,22,0.5);
         z-index: 50;
         display: none;
         align-items: flex-end;
         justify-content: center;
+        border-radius: inherit;
     }
     .modal-overlay.open { display: flex; }
 
     .modal-sheet {
         background: var(--surface);
         border-radius: 20px 20px 0 0;
-        padding: 28px 24px 36px;
+        padding: 24px 20px calc(28px + var(--safe-bottom));
         width: 100%;
-        max-width: 430px;
-        animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+    }
+
+    @media (min-width: 480px) {
+        .modal-sheet { padding-bottom: 32px; }
     }
 
     @keyframes slideUp {
         from { transform: translateY(100%); }
-        to { transform: translateY(0); }
+        to   { transform: translateY(0); }
     }
+    .modal-overlay.open .modal-sheet,
+    .modal-overlay.open .edit-modal-sheet { animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1); }
 
     .modal-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
 
     .modal-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
@@ -551,53 +580,55 @@
     .export-options {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
     }
 
     .export-option {
         border: 1.5px solid var(--border);
         border-radius: 12px;
-        padding: 20px 16px;
+        padding: 18px 14px;
         cursor: pointer;
         background: var(--surface);
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         transition: all 0.15s;
     }
     .export-option:active { background: var(--surface-2); transform: scale(0.98); }
 
     .export-option-icon {
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    .export-option-icon.pdf { background: var(--accent-light); color: var(--accent); }
+    .export-option-icon.pdf   { background: var(--accent-light); color: var(--accent); }
     .export-option-icon.excel { background: var(--accent-2-light); color: var(--accent-2); }
 
     .export-option-label { font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
-    .export-option-desc { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .export-option-desc  { font-family: var(--mono); font-size: 9.5px; color: var(--text-muted); margin-top: 2px; }
 
+    /* ── Loading overlay ── */
     .loading-overlay {
-        position: fixed;
+        position: absolute;
         inset: 0;
-        background: rgba(255,255,255,0.95);
+        background: rgba(255,255,255,0.96);
         backdrop-filter: blur(8px);
         z-index: 60;
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 16px;
+        gap: 14px;
+        border-radius: inherit;
     }
     .loading-overlay.show { display: flex; }
 
     .spinner {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         border: 2px solid var(--border);
         border-top-color: var(--text-primary);
         border-radius: 50%;
@@ -606,16 +637,17 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .loading-text { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-    .loading-sub { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+    .loading-sub  { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
 
+    /* ── Toast ── */
     .toast {
         position: absolute;
-        top: 80px;
+        top: 72px;
         left: 50%;
         transform: translateX(-50%) translateY(-8px);
         background: var(--text-primary);
         color: white;
-        padding: 10px 20px;
+        padding: 9px 18px;
         border-radius: 8px;
         font-size: 12.5px;
         font-weight: 500;
@@ -623,15 +655,13 @@
         opacity: 0;
         pointer-events: none;
         transition: all 0.25s cubic-bezier(0.32,0.72,0,1);
-        z-index: 40;
+        z-index: 70;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ── Card action buttons ── */
-    .card-actions {
-        display: flex;
-        gap: 6px;
-    }
+    .card-actions { display: flex; gap: 6px; }
+
     .card-action-btn {
         width: 28px;
         height: 28px;
@@ -647,44 +677,41 @@
         flex-shrink: 0;
     }
     .card-action-btn:active { background: var(--surface-2); transform: scale(0.93); }
-    .card-action-btn.edit:active { color: var(--text-primary); }
     .card-action-btn.delete { color: #C0392B; border-color: #F5C6C6; }
     .card-action-btn.delete:active { background: #FFF0F0; }
 
     /* ── Edit Modal ── */
     .edit-modal-overlay {
-        position: fixed;
+        position: absolute;
         inset: 0;
         background: rgba(26,25,22,0.5);
         z-index: 55;
         display: none;
         align-items: flex-end;
         justify-content: center;
+        border-radius: inherit;
     }
     .edit-modal-overlay.open { display: flex; }
 
     .edit-modal-sheet {
         background: var(--surface);
         border-radius: 20px 20px 0 0;
-        padding: 0;
         width: 100%;
-        max-width: 430px;
-        max-height: 92svh;
+        max-height: 90dvh;
         display: flex;
         flex-direction: column;
-        animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
     }
 
     .edit-modal-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 20px 20px 16px;
+        padding: 18px 20px 14px;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
     }
 
-    .edit-modal-header-left .edit-modal-sub {
+    .edit-modal-sub {
         font-family: var(--mono);
         font-size: 9px;
         letter-spacing: 0.12em;
@@ -702,12 +729,11 @@
 
     .edit-modal-body {
         overflow-y: auto;
-        padding: 20px 20px 0;
+        padding: 18px 20px 0;
         flex: 1;
     }
     .edit-modal-body::-webkit-scrollbar { display: none; }
 
-    /* Edit image area */
     .edit-upload-area {
         width: 100%;
         aspect-ratio: 16/7;
@@ -721,11 +747,11 @@
         cursor: pointer;
         overflow: hidden;
         position: relative;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         transition: border-color 0.2s, background 0.2s;
     }
     .edit-upload-area:active { background: #EEEEEE; }
-    .edit-upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
+    .edit-upload-area.has-image { border-style: solid; border-color: var(--border); }
 
     #editImagePreview {
         position: absolute;
@@ -740,7 +766,7 @@
         position: absolute;
         top: 8px;
         right: 8px;
-        background: rgba(255,255,255,0.9);
+        background: rgba(255,255,255,0.92);
         backdrop-filter: blur(8px);
         border: 1px solid rgba(0,0,0,0.08);
         border-radius: 6px;
@@ -755,11 +781,15 @@
     }
 
     .edit-modal-footer {
-        padding: 16px 20px 28px;
+        padding: 14px 20px calc(24px + var(--safe-bottom));
         display: flex;
         gap: 10px;
         flex-shrink: 0;
         border-top: 1px solid var(--border);
+    }
+
+    @media (min-width: 480px) {
+        .edit-modal-footer { padding-bottom: 24px; }
     }
 
     .btn-cancel {
@@ -775,7 +805,6 @@
         cursor: pointer;
         transition: opacity 0.15s;
     }
-    .btn-cancel:active { opacity: 0.7; }
 
     .btn-save-edit {
         flex: 2;
@@ -796,9 +825,9 @@
     }
     .btn-save-edit:active { opacity: 0.8; }
 
-    /* Delete confirm modal */
+    /* ── Delete confirm ── */
     .confirm-overlay {
-        position: fixed;
+        position: absolute;
         inset: 0;
         background: rgba(26,25,22,0.5);
         z-index: 58;
@@ -806,6 +835,7 @@
         align-items: center;
         justify-content: center;
         padding: 24px;
+        border-radius: inherit;
     }
     .confirm-overlay.open { display: flex; }
 
@@ -814,7 +844,7 @@
         border-radius: 16px;
         padding: 24px;
         width: 100%;
-        max-width: 320px;
+        max-width: 300px;
         text-align: center;
         animation: popIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
     }
@@ -836,25 +866,10 @@
         color: #C0392B;
     }
 
-    .confirm-title {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 6px;
-        letter-spacing: -0.02em;
-    }
+    .confirm-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; letter-spacing: -0.02em; }
+    .confirm-sub   { font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
 
-    .confirm-sub {
-        font-size: 12.5px;
-        color: var(--text-muted);
-        margin-bottom: 20px;
-        line-height: 1.5;
-    }
-
-    .confirm-actions {
-        display: flex;
-        gap: 10px;
-    }
+    .confirm-actions { display: flex; gap: 10px; }
 
     .confirm-btn-cancel {
         flex: 1;
@@ -880,7 +895,6 @@
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        transition: opacity 0.15s;
     }
     .confirm-btn-delete:active { opacity: 0.8; }
 </style>
@@ -889,7 +903,8 @@
 </head>
 <body>
 
-<div class="app">
+<div class="phone-shell">
+    <!-- Header -->
     <header class="header">
         <div class="header-left">
             <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
@@ -897,7 +912,11 @@
         </div>
         <div class="header-right">
             <button class="btn-export" id="exportBtn" onclick="openExportModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" x2="12" y1="15" y2="3"/>
+                </svg>
                 Export
             </button>
             <div class="count-chip" id="countChip" style="display:none">
@@ -907,7 +926,9 @@
     </header>
 
 ```
+<!-- Main scrollable area -->
 <main id="mainScroll">
+    <!-- Form View -->
     <div id="formView">
         <p class="section-title">New Entry</p>
 
@@ -916,14 +937,19 @@
         <div class="upload-area" id="uploadArea" onclick="triggerUpload()">
             <div class="upload-placeholder" id="uploadPlaceholder">
                 <div class="upload-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#A8A49D"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
                 </div>
                 <span>แตะเพื่อถ่ายรูป / อัปโหลด</span>
                 <small>JPG · PNG · HEIC</small>
             </div>
             <img id="imagePreview" src="" alt="">
-            <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)" aria-label="Remove image">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
             </button>
         </div>
 
@@ -933,15 +959,15 @@
         </div>
 
         <div class="field">
-            <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
+            <span class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></span>
             <div class="team-tags" id="teamTags">
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างทาสี')">ช่างทาสี</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างประปา')">ช่างประปา</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-                <div class="team-tag" onclick="selectTeam(this, '__other__')">อื่นๆ ...</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างทาสี')">ช่างทาสี</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างประปา')">ช่างประปา</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+                <div class="team-tag" onclick="selectTeam(this,'__other__')">อื่นๆ ...</div>
             </div>
             <div class="custom-team-wrap" id="customTeamWrap">
                 <input type="text" id="customTeamInput" placeholder="ระบุทีม / ประเภทงาน">
@@ -959,11 +985,14 @@
         </div>
 
         <button class="btn-submit" onclick="saveDefect()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
             บันทึกรายการ
         </button>
     </div>
 
+    <!-- List View -->
     <div id="listView">
         <div class="list-stats" id="listStats" style="display:none">
             <div class="stat-chip">
@@ -980,7 +1009,9 @@
 
         <div class="empty-state" id="emptyState">
             <div class="empty-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
             </div>
             <p>ยังไม่มีรายการ Defect</p>
             <small>เริ่มเพิ่มรายการแรกได้เลย</small>
@@ -988,35 +1019,48 @@
     </div>
 </main>
 
+<!-- Bottom Nav -->
 <nav class="bottom-nav">
     <button class="nav-btn active" id="tab-form" onclick="switchTab('form')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <path d="M12 8v8M8 12h8"/>
+        </svg>
         <span>เพิ่ม</span>
     </button>
     <button class="nav-btn" id="tab-list" onclick="switchTab('list')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
         <span>รายการ</span>
         <div class="nav-dot" id="navDot"></div>
     </button>
 </nav>
 
+<!-- Toast -->
 <div class="toast" id="toast"></div>
-```
 
-</div>
-
+<!-- Export Modal -->
 <div class="modal-overlay" id="exportModal" onclick="closeExportOnOverlay(event)">
     <div class="modal-sheet">
         <div class="modal-header">
             <span class="modal-title">ส่งออกรายงาน</span>
             <button class="modal-close" onclick="closeExportModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
             </button>
         </div>
         <div class="export-options">
             <div class="export-option" onclick="exportPDF()">
                 <div class="export-option-icon pdf">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
                 </div>
                 <div>
                     <div class="export-option-label">PDF Report</div>
@@ -1025,7 +1069,9 @@
             </div>
             <div class="export-option" onclick="exportExcel()">
                 <div class="export-option-icon excel">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
                 </div>
                 <div>
                     <div class="export-option-label">Excel Data</div>
@@ -1036,93 +1082,105 @@
     </div>
 </div>
 
+<!-- Loading overlay -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <div class="loading-text">กำลังสร้างไฟล์...</div>
     <div class="loading-sub">กรุณารอสักครู่</div>
 </div>
 
-<!-- ── Edit Modal ── -->
-
+<!-- Edit Modal -->
 <div class="edit-modal-overlay" id="editModal" onclick="closeEditOnOverlay(event)">
     <div class="edit-modal-sheet">
         <div class="edit-modal-header">
-            <div class="edit-modal-header-left">
+            <div>
                 <div class="edit-modal-sub">แก้ไขรายการ</div>
                 <div class="edit-modal-title" id="editModalTitle">DEF — 001</div>
             </div>
             <button class="modal-close" onclick="closeEditModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
             </button>
         </div>
 
-```
-    <div class="edit-modal-body">
-        <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
+        <div class="edit-modal-body">
+            <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
 
-        <div class="edit-upload-area" id="editUploadArea" onclick="triggerEditUpload()">
-            <div class="upload-placeholder" id="editUploadPlaceholder">
-                <div class="upload-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#A8A49D"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div class="edit-upload-area" id="editUploadArea" onclick="triggerEditUpload()">
+                <div class="upload-placeholder" id="editUploadPlaceholder">
+                    <div class="upload-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:13px;color:var(--text-muted)">แตะเพื่อเปลี่ยนรูป</span>
                 </div>
-                <span style="font-size:13px;color:var(--text-muted)">แตะเพื่อเปลี่ยนรูป</span>
+                <img id="editImagePreview" src="" alt="">
+                <button class="edit-remove-img-btn" id="editRemoveImgBtn" onclick="clearEditImage(event)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
-            <img id="editImagePreview" src="" alt="">
-            <button class="edit-remove-img-btn" id="editRemoveImgBtn" onclick="clearEditImage(event)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+
+            <div class="field">
+                <label>Zone / ตำแหน่ง <span class="req">*</span></label>
+                <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
+            </div>
+
+            <div class="field">
+                <span class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></span>
+                <div class="team-tags" id="editTeamTags">
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างทาสี')">ช่างทาสี</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างประปา')">ช่างประปา</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'__other__')">อื่นๆ ...</div>
+                </div>
+                <div class="custom-team-wrap" id="editCustomTeamWrap">
+                    <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
+                </div>
+            </div>
+
+            <div class="field">
+                <label>รายการที่ต้องแก้ <span class="req">*</span></label>
+                <textarea id="editDetails" placeholder="เช่น เก็บสีใต้เหล็ก"></textarea>
+            </div>
+
+            <div class="field" style="margin-bottom:8px">
+                <label>หมายเหตุ</label>
+                <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
+            </div>
+        </div>
+
+        <div class="edit-modal-footer">
+            <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
+            <button class="btn-save-edit" onclick="saveEdit()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                บันทึกการแก้ไข
             </button>
         </div>
-
-        <div class="field">
-            <label>Zone / ตำแหน่ง <span class="req">*</span></label>
-            <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
-        </div>
-
-        <div class="field">
-            <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
-            <div class="team-tags" id="editTeamTags">
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างทาสี')">ช่างทาสี</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างประปา')">ช่างประปา</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-                <div class="team-tag" onclick="selectEditTeam(this, '__other__')">อื่นๆ ...</div>
-            </div>
-            <div class="custom-team-wrap" id="editCustomTeamWrap">
-                <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
-            </div>
-        </div>
-
-        <div class="field">
-            <label>รายการที่ต้องแก้ <span class="req">*</span></label>
-            <textarea id="editDetails" placeholder="เช่น เก็บสีใต้เหล็ก"></textarea>
-        </div>
-
-        <div class="field" style="margin-bottom:8px">
-            <label>หมายเหตุ</label>
-            <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
-        </div>
-    </div>
-
-    <div class="edit-modal-footer">
-        <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
-        <button class="btn-save-edit" onclick="saveEdit()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            บันทึกการแก้ไข
-        </button>
     </div>
 </div>
-```
 
-</div>
-
-<!-- ── Delete Confirm ── -->
-
+<!-- Delete Confirm -->
 <div class="confirm-overlay" id="confirmModal">
     <div class="confirm-box">
         <div class="confirm-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+            </svg>
         </div>
         <div class="confirm-title">ลบรายการนี้?</div>
         <div class="confirm-sub">การลบไม่สามารถกู้คืนได้<br>ต้องการดำเนินการต่อหรือไม่</div>
@@ -1132,6 +1190,9 @@
         </div>
     </div>
 </div>
+```
+
+</div>
 
 <script>
     let defectsData = [];
@@ -1139,19 +1200,16 @@
     let selectedTeam = null;
     let isCustomTeam = false;
 
-    // ── Team selection ──
     function selectTeam(el, value) {
-        document.querySelectorAll('.team-tag').forEach(t => t.classList.remove('selected'));
+        document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
         el.classList.add('selected');
         const wrap = document.getElementById('customTeamWrap');
         if (value === '__other__') {
-            isCustomTeam = true;
-            selectedTeam = null;
+            isCustomTeam = true; selectedTeam = null;
             wrap.classList.add('open');
             setTimeout(() => document.getElementById('customTeamInput').focus(), 50);
         } else {
-            isCustomTeam = false;
-            selectedTeam = value;
+            isCustomTeam = false; selectedTeam = value;
             wrap.classList.remove('open');
         }
     }
@@ -1161,7 +1219,6 @@
         return selectedTeam;
     }
 
-    // ── Image upload ──
     function triggerUpload() { document.getElementById('photoInput').click(); }
 
     function previewImage(event) {
@@ -1191,7 +1248,6 @@
         document.getElementById('uploadArea').classList.remove('has-image');
     }
 
-    // ── Save defect ──
     function saveDefect() {
         const location = document.getElementById('location').value.trim();
         const details  = document.getElementById('details').value.trim();
@@ -1203,61 +1259,45 @@
         if (!team)                { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
         if (!details)             { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
 
-        defectsData.push({
-            id: defectsData.length + 1,
-            timestamp: new Date().toISOString(),
-            image: currentImageDataURL,
-            location, details, team, remarks
-        });
+        defectsData.push({ id: defectsData.length + 1, timestamp: new Date().toISOString(), image: currentImageDataURL, location, details, team, remarks });
 
-        updateBadge();
-        renderList();
-        showToast('✓ บันทึกสำเร็จ');
+        updateBadge(); renderList(); showToast('✓ บันทึกสำเร็จ');
 
         document.getElementById('location').value = '';
         document.getElementById('details').value  = '';
         document.getElementById('remarks').value  = '';
         document.getElementById('customTeamInput').value = '';
-        document.querySelectorAll('.team-tag').forEach(t => t.classList.remove('selected'));
+        document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
         document.getElementById('customTeamWrap').classList.remove('open');
-        selectedTeam = null;
-        isCustomTeam = false;
+        selectedTeam = null; isCustomTeam = false;
         clearImage(new Event('click'));
         document.getElementById('mainScroll').scrollTop = 0;
     }
 
-    // ── Render list ──
     function renderList() {
         const container = document.getElementById('defectsContainer');
         const empty     = document.getElementById('emptyState');
         const stats     = document.getElementById('listStats');
         container.innerHTML = '';
 
-        if (defectsData.length === 0) {
-            empty.style.display = 'flex';
-            stats.style.display = 'none';
-            return;
-        }
+        if (defectsData.length === 0) { empty.style.display = 'flex'; stats.style.display = 'none'; return; }
 
-        empty.style.display = 'none';
-        stats.style.display = 'flex';
+        empty.style.display = 'none'; stats.style.display = 'flex';
         document.getElementById('totalCount').textContent = defectsData.length;
         document.getElementById('teamCount').textContent  = new Set(defectsData.map(d => d.team)).size;
 
         [...defectsData].reverse().forEach(d => {
-            const date    = new Date(d.timestamp);
-            const dateStr = `${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getFullYear()}`;
             container.innerHTML += `
                 <div class="defect-card" id="card-${d.id}">
-                    <img class="card-image" src="${d.image}" alt="defect ${d.id}">
+                    <img class="card-image" src="${d.image}" alt="defect ${d.id}" loading="lazy">
                     <div class="card-body">
                         <div class="card-header">
                             <span class="card-id">DEF — ${String(d.id).padStart(3,'0')}</span>
                             <div class="card-actions">
-                                <button class="card-action-btn edit" onclick="openEditModal(${d.id})" title="แก้ไข">
+                                <button class="card-action-btn edit" onclick="openEditModal(${d.id})">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 </button>
-                                <button class="card-action-btn delete" onclick="openConfirmModal(${d.id})" title="ลบ">
+                                <button class="card-action-btn delete" onclick="openConfirmModal(${d.id})">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
                                 </button>
                             </div>
@@ -1273,28 +1313,23 @@
         });
     }
 
-    // ── Tab switch ──
     function switchTab(tab) {
         const fv = document.getElementById('formView');
         const lv = document.getElementById('listView');
-
         if (tab === 'form') {
-            fv.style.display = 'block';
-            lv.style.display = 'none';
-            document.getElementById('headerEyebrow').textContent = 'Quality Control';
+            fv.style.display = 'block'; lv.style.display = 'none';
+            document.getElementById('headerEyebrow').textContent = 'KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP';
             document.getElementById('headerTitle').textContent   = 'Defect Log';
             document.getElementById('exportBtn').classList.remove('visible');
             document.getElementById('countChip').style.display   = 'none';
             document.getElementById('tab-form').classList.add('active');
             document.getElementById('tab-list').classList.remove('active');
         } else {
-            fv.style.display = 'none';
-            lv.style.display = 'block';
+            fv.style.display = 'none'; lv.style.display = 'block';
             document.getElementById('headerEyebrow').textContent = 'All Records';
             document.getElementById('headerTitle').textContent   = 'รายการทั้งหมด';
             document.getElementById('tab-list').classList.add('active');
             document.getElementById('tab-form').classList.remove('active');
-
             if (defectsData.length > 0) {
                 document.getElementById('exportBtn').classList.add('visible');
                 document.getElementById('countChip').style.display = 'block';
@@ -1305,6 +1340,7 @@
             }
             renderList();
         }
+        document.getElementById('mainScroll').scrollTop = 0;
     }
 
     function updateBadge() {
@@ -1313,109 +1349,63 @@
 
     function openExportModal()  { document.getElementById('exportModal').classList.add('open'); }
     function closeExportModal() { document.getElementById('exportModal').classList.remove('open'); }
-    function closeExportOnOverlay(e) {
-        if (e.target === document.getElementById('exportModal')) closeExportModal();
-    }
+    function closeExportOnOverlay(e) { if (e.target === document.getElementById('exportModal')) closeExportModal(); }
 
-    // ════════════════════════════════════════════════════════════════
-    // PDF EXPORT — Canvas-based rendering (รองรับภาษาไทย 100%)
-    // ════════════════════════════════════════════════════════════════
-
-    // รอให้ Sarabun โหลดเสร็จก่อน render
-    async function ensureFontsLoaded() {
-        if (document.fonts && document.fonts.ready) {
-            await document.fonts.ready;
-        }
-    }
+    // ── PDF Export ──
+    async function ensureFontsLoaded() { if (document.fonts && document.fonts.ready) await document.fonts.ready; }
 
     function loadImageEl(src) {
         return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload  = () => resolve(img);
-            img.onerror = () => reject();
-            img.src = src;
+            const img = new Image(); img.onload = () => resolve(img); img.onerror = () => reject(); img.src = src;
         });
     }
 
-    // วาดรูปแบบ cover fit ลง canvas
     function drawCover(ctx, img, x, y, w, h) {
-        const iR = img.width / img.height;
-        const bR = w / h;
+        const iR = img.width / img.height, bR = w / h;
         let sx, sy, sw, sh;
         if (iR > bR) { sh = img.height; sw = sh * bR; sx = (img.width - sw) / 2; sy = 0; }
         else          { sw = img.width;  sh = sw / bR; sx = 0; sy = (img.height - sh) / 2; }
         ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
     }
 
-    // วาด text พร้อม word-wrap โดยใช้ canvas (รองรับภาษาไทย)
     function drawWrappedText(ctx, text, x, y, maxW, lineHeight, maxLines) {
-        // ภาษาไทยไม่มี space จึงใช้ Intl.Segmenter ถ้ามี ไม่อย่างนั้นใช้ character-based wrap
         const words = text.split(/(\s+)/);
-        const lines = [];
-        let current = '';
-
+        const lines = []; let current = '';
         for (const word of words) {
             const test = current + word;
-            if (ctx.measureText(test).width <= maxW) {
-                current = test;
-            } else {
+            if (ctx.measureText(test).width <= maxW) { current = test; }
+            else {
                 if (current) lines.push(current.trim());
                 current = word;
                 if (lines.length >= maxLines - 1) {
-                    // truncate
-                    let truncated = current;
-                    while (truncated.length > 0 && ctx.measureText(truncated + '…').width > maxW) {
-                        truncated = truncated.slice(0, -1);
-                    }
-                    lines.push(truncated + '…');
-                    current = '';
-                    break;
+                    let tr = current;
+                    while (tr.length > 0 && ctx.measureText(tr + '…').width > maxW) tr = tr.slice(0,-1);
+                    lines.push(tr + '…'); current = ''; break;
                 }
             }
         }
         if (current.trim() && lines.length < maxLines) lines.push(current.trim());
-
-        lines.forEach((line, i) => {
-            ctx.fillText(line, x, y + i * lineHeight);
-        });
-
+        lines.forEach((line, i) => ctx.fillText(line, x, y + i * lineHeight));
         return lines.length;
     }
 
     async function exportPDF() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
-
         document.getElementById('loadingOverlay').classList.add('show');
-
         try {
             await ensureFontsLoaded();
-
             const { jsPDF } = window.jspdf;
-
-            // ── ขนาดหน้า A4 (mm และ px ที่ 96dpi→ 3.7795 px/mm) ──
-            const DPI    = 150;
-            const MM2PX  = DPI / 25.4;      // px per mm at chosen DPI
-            const PW_MM  = 210, PH_MM = 297;
-            const PW     = Math.round(PW_MM * MM2PX);
-            const PH     = Math.round(PH_MM * MM2PX);
-
-            // ── Layout (px) ──
-            const MARGIN     = Math.round(12  * MM2PX);
-            const COL_GAP    = Math.round(5   * MM2PX);
-            const COL_W      = Math.round((PW_MM - 12*2 - 5) / 2 * MM2PX);
-            const CARD_H     = Math.round(72  * MM2PX);
-            const IMG_H      = Math.round(43  * MM2PX);
-            const NUM_W      = Math.round(8   * MM2PX);
-            const TBL_H      = CARD_H - IMG_H;
-            const ROW_H      = Math.round(TBL_H / 3);
-            const LABEL_W    = Math.round(COL_W * 0.27);
-            const CARD_GAP   = Math.round(5   * MM2PX);
-            const HEADER_H   = Math.round(26  * MM2PX);
-            const ITEMS_PAGE = 6;
-
-            const THAI_FONT  = `'Sarabun', 'Noto Sans Thai', sans-serif`;
-
+            const DPI = 150, MM2PX = DPI / 25.4;
+            const PW_MM = 210, PH_MM = 297;
+            const PW = Math.round(PW_MM * MM2PX), PH = Math.round(PH_MM * MM2PX);
+            const MARGIN = Math.round(12 * MM2PX), COL_GAP = Math.round(5 * MM2PX);
+            const COL_W = Math.round((PW_MM - 12*2 - 5) / 2 * MM2PX);
+            const CARD_H = Math.round(72 * MM2PX), IMG_H = Math.round(43 * MM2PX);
+            const NUM_W = Math.round(8 * MM2PX), TBL_H = CARD_H - IMG_H;
+            const ROW_H = Math.round(TBL_H / 3), LABEL_W = Math.round(COL_W * 0.27);
+            const CARD_GAP = Math.round(5 * MM2PX), HEADER_H = Math.round(26 * MM2PX);
+            const ITEMS_PAGE = 6, THAI_FONT = `'Sarabun', 'Noto Sans Thai', sans-serif`;
             const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
             const totalPages = Math.ceil(defectsData.length / ITEMS_PAGE);
             const now = new Date();
@@ -1423,225 +1413,99 @@
 
             for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
                 if (pageIdx > 0) pdf.addPage();
-
                 const pageItems = defectsData.slice(pageIdx * ITEMS_PAGE, (pageIdx + 1) * ITEMS_PAGE);
-
-                // สร้าง canvas สำหรับหน้านี้
                 const canvas = document.createElement('canvas');
-                canvas.width  = PW;
-                canvas.height = PH;
+                canvas.width = PW; canvas.height = PH;
                 const ctx = canvas.getContext('2d');
-
-                // พื้นหลังขาว
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, PW, PH);
-
-                // ── Header ──
+                ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, PW, PH);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#B9B7B4';
-                ctx.font      = `${Math.round(6.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
+                ctx.font = `${Math.round(6.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
                 let hy = MARGIN + Math.round(5 * MM2PX);
                 ctx.fillText('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW / 2, hy);
-
                 hy += Math.round(7 * MM2PX);
                 ctx.fillStyle = '#1A1916';
-                ctx.font      = `700 ${Math.round(15 * MM2PX * 0.352778)}px ${THAI_FONT}`;
+                ctx.font = `700 ${Math.round(15 * MM2PX * 0.352778)}px ${THAI_FONT}`;
                 ctx.fillText('Defect Report', PW / 2, hy);
-
                 hy += Math.round(5 * MM2PX);
                 ctx.fillStyle = '#9B9B9B';
-                ctx.font      = `${Math.round(7.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
+                ctx.font = `${Math.round(7.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
                 ctx.fillText(`ออกรายงานวันที่ ${dateStr}  —  รวม ${defectsData.length} รายการ`, PW / 2, hy);
-
                 hy += Math.round(4 * MM2PX);
                 ctx.fillStyle = '#C3C3C3';
-                ctx.font      = `${Math.round(6.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
+                ctx.font = `${Math.round(6.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
                 ctx.fillText(`หน้า ${pageIdx + 1} / ${totalPages}`, PW / 2, hy);
-
                 const gridTop = MARGIN + HEADER_H;
 
-                // ── การ์ดแต่ละรายการ ──
                 for (let i = 0; i < pageItems.length; i++) {
-                    const d   = pageItems[i];
-                    const col = i % 2;
-                    const row = Math.floor(i / 2);
-                    const cx  = MARGIN + col * (COL_W + COL_GAP);
-                    const cy  = gridTop + row * (CARD_H + CARD_GAP);
-
-                    // กรอบการ์ด
-                    ctx.strokeStyle = '#D7D4CF';
-                    ctx.lineWidth   = 1;
+                    const d = pageItems[i], col = i % 2, row = Math.floor(i / 2);
+                    const cx = MARGIN + col * (COL_W + COL_GAP), cy = gridTop + row * (CARD_H + CARD_GAP);
+                    ctx.strokeStyle = '#D7D4CF'; ctx.lineWidth = 1;
                     roundRect(ctx, cx, cy, COL_W, CARD_H, 6, false, true);
-
-                    // แถบเลข (ดำ)
-                    ctx.fillStyle = '#1A1916';
-                    ctx.fillRect(cx, cy, NUM_W, IMG_H);
-
-                    // ตัวเลข defect ID
-                    ctx.fillStyle   = '#FFFFFF';
-                    ctx.font        = `700 ${Math.round(9 * MM2PX * 0.352778)}px ${THAI_FONT}`;
-                    ctx.textAlign   = 'center';
-                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#1A1916'; ctx.fillRect(cx, cy, NUM_W, IMG_H);
+                    ctx.fillStyle = '#FFFFFF'; ctx.font = `700 ${Math.round(9 * MM2PX * 0.352778)}px ${THAI_FONT}`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText(String(d.id), cx + NUM_W / 2, cy + IMG_H / 2);
-
-                    // ── รูปภาพ ──
-                    const imgX = cx + NUM_W;
-                    const imgW = COL_W - NUM_W;
-
-                    // clip region สำหรับรูป
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(imgX, cy, imgW, IMG_H);
-                    ctx.clip();
-
+                    const imgX = cx + NUM_W, imgW = COL_W - NUM_W;
+                    ctx.save(); ctx.beginPath(); ctx.rect(imgX, cy, imgW, IMG_H); ctx.clip();
                     if (d.image) {
-                        try {
-                            const img = await loadImageEl(d.image);
-                            drawCover(ctx, img, imgX, cy, imgW, IMG_H);
-                        } catch {
-                            ctx.fillStyle = '#EBEBEB';
-                            ctx.fillRect(imgX, cy, imgW, IMG_H);
-                        }
-                    } else {
-                        ctx.fillStyle = '#EBEBEB';
-                        ctx.fillRect(imgX, cy, imgW, IMG_H);
-                    }
+                        try { const img = await loadImageEl(d.image); drawCover(ctx, img, imgX, cy, imgW, IMG_H); }
+                        catch { ctx.fillStyle = '#EBEBEB'; ctx.fillRect(imgX, cy, imgW, IMG_H); }
+                    } else { ctx.fillStyle = '#EBEBEB'; ctx.fillRect(imgX, cy, imgW, IMG_H); }
                     ctx.restore();
-
-                    // เส้นคั่นรูป/ข้อมูล
-                    ctx.strokeStyle = '#D7D4CF';
-                    ctx.lineWidth   = 0.8;
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy + IMG_H);
-                    ctx.lineTo(cx + COL_W, cy + IMG_H);
-                    ctx.stroke();
-
-                    // ── 3 แถวข้อมูล ──
+                    ctx.strokeStyle = '#D7D4CF'; ctx.lineWidth = 0.8;
+                    ctx.beginPath(); ctx.moveTo(cx, cy + IMG_H); ctx.lineTo(cx + COL_W, cy + IMG_H); ctx.stroke();
                     const fields = [
                         { label: 'ตำแหน่ง', value: d.location },
                         { label: 'ทีม',     value: d.team },
                         { label: 'รายการ',  value: d.details + (d.remarks ? ' / ' + d.remarks : '') }
                     ];
-
                     const labelFontSize = Math.round(5.5 * MM2PX * 0.352778);
                     const valueFontSize = Math.round(6.8 * MM2PX * 0.352778);
-
                     fields.forEach((f, fi) => {
                         const ry = cy + IMG_H + fi * ROW_H;
-
-                        // เส้นแบ่งแถว
-                        if (fi > 0) {
-                            ctx.strokeStyle = '#E4E1DC';
-                            ctx.lineWidth   = 0.6;
-                            ctx.beginPath();
-                            ctx.moveTo(cx, ry);
-                            ctx.lineTo(cx + COL_W, ry);
-                            ctx.stroke();
-                        }
-
-                        // เส้นแบ่ง label | value
-                        ctx.strokeStyle = '#E4E1DC';
-                        ctx.lineWidth   = 0.6;
-                        ctx.beginPath();
-                        ctx.moveTo(cx + LABEL_W, ry);
-                        ctx.lineTo(cx + LABEL_W, ry + ROW_H);
-                        ctx.stroke();
-
-                        // พื้นหลัง value (ฟ้าอ่อน)
-                        ctx.fillStyle = '#F8FAFF';
-                        ctx.fillRect(cx + LABEL_W + 1, ry + 1, COL_W - LABEL_W - 2, ROW_H - 2);
-
-                        // Label
-                        ctx.fillStyle    = '#A5A29D';
-                        ctx.font         = `${labelFontSize}px ${THAI_FONT}`;
-                        ctx.textAlign    = 'left';
-                        ctx.textBaseline = 'middle';
+                        if (fi > 0) { ctx.strokeStyle = '#E4E1DC'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(cx, ry); ctx.lineTo(cx + COL_W, ry); ctx.stroke(); }
+                        ctx.strokeStyle = '#E4E1DC'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(cx + LABEL_W, ry); ctx.lineTo(cx + LABEL_W, ry + ROW_H); ctx.stroke();
+                        ctx.fillStyle = '#F8FAFF'; ctx.fillRect(cx + LABEL_W + 1, ry + 1, COL_W - LABEL_W - 2, ROW_H - 2);
+                        ctx.fillStyle = '#A5A29D'; ctx.font = `${labelFontSize}px ${THAI_FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                         ctx.fillText(f.label, cx + 3, ry + ROW_H / 2);
-
-                        // Value
-                        ctx.fillStyle = '#1A1916';
-                        ctx.font      = `${valueFontSize}px ${THAI_FONT}`;
-
-                        const vx    = cx + LABEL_W + 4;
-                        const maxVW = COL_W - LABEL_W - 8;
-
-                        if (fi === 2) {
-                            // DETAIL: 2 บรรทัด
-                            const lh = Math.round(3.5 * MM2PX * 0.352778);
-                            ctx.textBaseline = 'top';
-                            drawWrappedText(ctx, f.value, vx, ry + 3, maxVW, lh, 2);
-                        } else {
-                            // ZONE / TEAM: 1 บรรทัด
-                            ctx.textBaseline = 'middle';
-                            let display = f.value;
-                            while (display.length > 1 && ctx.measureText(display).width > maxVW) {
-                                display = display.slice(0, -1);
-                            }
-                            if (display !== f.value) display = display.slice(0, -1) + '…';
-                            ctx.fillText(display, vx, ry + ROW_H / 2);
-                        }
+                        ctx.fillStyle = '#1A1916'; ctx.font = `${valueFontSize}px ${THAI_FONT}`;
+                        const vx = cx + LABEL_W + 4, maxVW = COL_W - LABEL_W - 8;
+                        if (fi === 2) { const lh = Math.round(3.5 * MM2PX * 0.352778); ctx.textBaseline = 'top'; drawWrappedText(ctx, f.value, vx, ry + 3, maxVW, lh, 2); }
+                        else { ctx.textBaseline = 'middle'; let display = f.value; while (display.length > 1 && ctx.measureText(display).width > maxVW) display = display.slice(0,-1); if (display !== f.value) display = display.slice(0,-1) + '…'; ctx.fillText(display, vx, ry + ROW_H / 2); }
                     });
                 }
-
-                // เพิ่ม canvas เป็นภาพ
                 const imgData = canvas.toDataURL('image/jpeg', 0.92);
                 pdf.addImage(imgData, 'JPEG', 0, 0, PW_MM, PH_MM);
             }
-
             pdf.save(`Defect_Report_${Date.now()}.pdf`);
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('✓ ดาวน์โหลด PDF สำเร็จ');
-
         } catch (err) {
-            console.error('PDF export error:', err);
+            console.error(err);
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
         }
     }
 
-    // Helper: rounded rect
     function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.arcTo(x + w, y, x + w, y + r, r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-        ctx.lineTo(x + r, y + h);
-        ctx.arcTo(x, y + h, x, y + h - r, r);
-        ctx.lineTo(x, y + r);
-        ctx.arcTo(x, y, x + r, y, r);
-        ctx.closePath();
-        if (fill)   ctx.fill();
-        if (stroke) ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+        ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r); ctx.lineTo(x + r, y + h);
+        ctx.arcTo(x, y + h, x, y + h - r, r); ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+        ctx.closePath(); if (fill) ctx.fill(); if (stroke) ctx.stroke();
     }
 
-    // ════════════════════════════════════════════════════════════════
-    // EXCEL EXPORT — ExcelJS รองรับ UTF-8 ภาษาไทยโดยตรง
-    // ════════════════════════════════════════════════════════════════
     async function exportExcel() {
         closeExportModal();
         if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
-
         document.getElementById('loadingOverlay').classList.add('show');
-
         try {
             const workbook = new ExcelJS.Workbook();
-            workbook.creator  = 'KS Construction';
-            workbook.created  = new Date();
-
+            workbook.creator = 'KS Construction'; workbook.created = new Date();
             const sheet = workbook.addWorksheet('รายงาน Defect', {
                 views: [{ showGridLines: false }],
-                pageSetup: {
-                    paperSize: 9,        // A4
-                    orientation: 'landscape',
-                    fitToPage: true,
-                    fitToWidth: 1,
-                    fitToHeight: 0
-                }
+                pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
             });
-
-            // ── Columns ──
             sheet.columns = [
                 { header: 'ลำดับ',           key: 'id',       width: 7  },
                 { header: 'รูปภาพ Defect',   key: 'image',    width: 32 },
@@ -1651,215 +1515,110 @@
                 { header: 'หมายเหตุ',        key: 'remarks',  width: 25 },
                 { header: 'วันที่บันทึก',    key: 'date',     width: 22 }
             ];
-
-            // ── Header row ──
             const headerRow = sheet.getRow(1);
             headerRow.height = 32;
-            headerRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+            headerRow.eachCell({ includeEmpty: true }, cell => {
                 cell.font      = { name: 'Tahoma', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1916' } };
                 cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                 cell.border    = { bottom: { style: 'thin', color: { argb: 'FF444444' } } };
             });
-
-            // ── Data rows ──
             for (let index = 0; index < defectsData.length; index++) {
-                const d        = defectsData[index];
-                const rowIndex = index + 2;
-                const row      = sheet.getRow(rowIndex);
-
+                const d = defectsData[index], rowIndex = index + 2, row = sheet.getRow(rowIndex);
                 row.height = 115;
-
-                // ── ค่าข้อมูล (UTF-8 ภาษาไทยถูกต้อง) ──
                 row.getCell('A').value = d.id;
-                // B = รูปภาพ (จัดการด้านล่าง)
                 row.getCell('C').value = d.location;
                 row.getCell('D').value = d.team;
                 row.getCell('E').value = d.details;
                 row.getCell('F').value = d.remarks || '-';
-                row.getCell('G').value = new Date(d.timestamp).toLocaleString('th-TH', {
-                    year:   'numeric',
-                    month:  'short',
-                    day:    'numeric',
-                    hour:   '2-digit',
-                    minute: '2-digit'
-                });
-
-                // ── Font & Alignment ──
+                row.getCell('G').value = new Date(d.timestamp).toLocaleString('th-TH', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
                 ['A','C','D','E','F','G'].forEach(col => {
                     const cell = row.getCell(col);
                     cell.font      = { name: 'Tahoma', size: 11 };
-                    cell.alignment = {
-                        vertical:  'middle',
-                        horizontal: col === 'A' || col === 'G' ? 'center' : 'left',
-                        wrapText:  true
-                    };
+                    cell.alignment = { vertical: 'middle', horizontal: col === 'A' || col === 'G' ? 'center' : 'left', wrapText: true };
                 });
-
-                // ── Alternating row bg ──
                 const rowBg = index % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9';
                 ['A','B','C','D','E','F','G'].forEach(col => {
                     const cell = row.getCell(col);
                     cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
-                    cell.border = {
-                        top:    { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                        left:   { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                        bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                        right:  { style: 'thin', color: { argb: 'FFE0E0E0' } }
-                    };
+                    cell.border = { top: { style:'thin', color:{argb:'FFE0E0E0'} }, left: { style:'thin', color:{argb:'FFE0E0E0'} }, bottom: { style:'thin', color:{argb:'FFE0E0E0'} }, right: { style:'thin', color:{argb:'FFE0E0E0'} } };
                 });
-
-                // ── รูปภาพ ──
                 if (d.image) {
                     try {
-                        const mimeType   = d.image.substring('data:image/'.length, d.image.indexOf(';base64'));
+                        const mimeType = d.image.substring('data:image/'.length, d.image.indexOf(';base64'));
                         const base64Data = d.image.split('base64,')[1];
-                        const ext        = mimeType === 'jpeg' || mimeType === 'jpg' ? 'jpeg' : 'png';
-
+                        const ext = mimeType === 'jpeg' || mimeType === 'jpg' ? 'jpeg' : 'png';
                         const imageId = workbook.addImage({ base64: base64Data, extension: ext });
-                        sheet.addImage(imageId, {
-                            tl: { col: 1.08, row: rowIndex - 1 + 0.08 },
-                            ext: { width: 220, height: 128 },
-                            editAs: 'oneCell'
-                        });
-                    } catch (imgErr) {
-                        console.warn('Image embed failed:', imgErr);
-                    }
+                        sheet.addImage(imageId, { tl: { col: 1.08, row: rowIndex - 1 + 0.08 }, ext: { width: 220, height: 128 }, editAs: 'oneCell' });
+                    } catch(imgErr) { console.warn(imgErr); }
                 }
             }
-
-            // ── Freeze pane & column A ──
             sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, showGridLines: false }];
-
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob   = new Blob([buffer], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             saveAs(blob, `Defect_Report_${Date.now()}.xlsx`);
-
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('✓ ดาวน์โหลด Excel สำเร็จ');
-
         } catch (error) {
-            console.error('Excel export error:', error);
+            console.error(error);
             document.getElementById('loadingOverlay').classList.remove('show');
             showToast('❌ เกิดข้อผิดพลาดในการสร้าง Excel');
         }
     }
 
-    // ════════════════════════════════════════════════════════════════
-    // EDIT MODAL
-    // ════════════════════════════════════════════════════════════════
-    let editingId         = null;
-    let editImageDataURL  = null;
-    let editSelectedTeam  = null;
-    let editIsCustomTeam  = false;
+    // ── Edit Modal ──
+    let editingId = null, editImageDataURL = null, editSelectedTeam = null, editIsCustomTeam = false;
 
     function openEditModal(id) {
         const d = defectsData.find(x => x.id === id);
         if (!d) return;
-
-        editingId        = id;
-        editImageDataURL = d.image;
-
+        editingId = id; editImageDataURL = d.image;
         document.getElementById('editModalTitle').textContent = `DEF — ${String(id).padStart(3,'0')}`;
         document.getElementById('editLocation').value  = d.location;
         document.getElementById('editDetails').value   = d.details;
         document.getElementById('editRemarks').value   = d.remarks || '';
         document.getElementById('editCustomTeamInput').value = '';
-
-        // Image
-        const prev = document.getElementById('editImagePreview');
-        const ph   = document.getElementById('editUploadPlaceholder');
-        const rmv  = document.getElementById('editRemoveImgBtn');
-        const area = document.getElementById('editUploadArea');
-        if (d.image) {
-            prev.src           = d.image;
-            prev.style.display = 'block';
-            ph.style.display   = 'none';
-            rmv.style.display  = 'flex';
-            area.classList.add('has-image');
-        } else {
-            prev.src           = '';
-            prev.style.display = 'none';
-            ph.style.display   = 'flex';
-            rmv.style.display  = 'none';
-            area.classList.remove('has-image');
-        }
-
-        // Team tags
+        const prev = document.getElementById('editImagePreview'), ph = document.getElementById('editUploadPlaceholder');
+        const rmv = document.getElementById('editRemoveImgBtn'), area = document.getElementById('editUploadArea');
+        if (d.image) { prev.src = d.image; prev.style.display = 'block'; ph.style.display = 'none'; rmv.style.display = 'flex'; area.classList.add('has-image'); }
+        else { prev.src = ''; prev.style.display = 'none'; ph.style.display = 'flex'; rmv.style.display = 'none'; area.classList.remove('has-image'); }
         document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
         document.getElementById('editCustomTeamWrap').classList.remove('open');
         editIsCustomTeam = false;
-
         const presetValues = ['ช่างทาสี','ช่างปูน/โครงสร้าง','ช่างไฟฟ้า','ช่างประปา','ช่างฝ้า/เพดาน','ช่างกระเบื้อง'];
-        const tagMap = { 'ช่างทาสี':'ช่างทาสี','ช่างปูน/โครงสร้าง':'ช่างปูน/โครงสร้าง','ช่างไฟฟ้า':'ช่างไฟฟ้า','ช่างประปา':'ช่างประปา','ช่างฝ้า/เพดาน':'ช่างฝ้า/เพดาน','ช่างกระเบื้อง':'ช่างกระเบื้อง' };
-
         if (presetValues.includes(d.team)) {
             editSelectedTeam = d.team;
-            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
-                if (t.textContent.trim() !== 'อื่นๆ ...' && tagMap[d.team] && t.getAttribute('onclick').includes(`'${d.team}'`)) {
-                    t.classList.add('selected');
-                }
-                // match by onclick attribute content
-                const match = t.getAttribute('onclick').match(/'([^']+)'/);
-                if (match && match[1] === d.team) t.classList.add('selected');
-            });
+            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => { const m = t.getAttribute('onclick').match(/'([^']+)'/); if (m && m[1] === d.team) t.classList.add('selected'); });
         } else {
-            // custom team
-            editIsCustomTeam = true;
-            editSelectedTeam = null;
+            editIsCustomTeam = true; editSelectedTeam = null;
             document.getElementById('editCustomTeamInput').value = d.team;
             document.getElementById('editCustomTeamWrap').classList.add('open');
-            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
-                if (t.textContent.trim() === 'อื่นๆ ...') t.classList.add('selected');
-            });
+            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => { if (t.textContent.trim() === 'อื่นๆ ...') t.classList.add('selected'); });
         }
-
         document.getElementById('editModal').classList.add('open');
     }
 
-    function closeEditModal() {
-        document.getElementById('editModal').classList.remove('open');
-        editingId = null;
-    }
-
-    function closeEditOnOverlay(e) {
-        if (e.target === document.getElementById('editModal')) closeEditModal();
-    }
+    function closeEditModal() { document.getElementById('editModal').classList.remove('open'); editingId = null; }
+    function closeEditOnOverlay(e) { if (e.target === document.getElementById('editModal')) closeEditModal(); }
 
     function selectEditTeam(el, value) {
         document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
         el.classList.add('selected');
         const wrap = document.getElementById('editCustomTeamWrap');
-        if (value === '__other__') {
-            editIsCustomTeam = true;
-            editSelectedTeam = null;
-            wrap.classList.add('open');
-            setTimeout(() => document.getElementById('editCustomTeamInput').focus(), 50);
-        } else {
-            editIsCustomTeam = false;
-            editSelectedTeam = value;
-            wrap.classList.remove('open');
-        }
+        if (value === '__other__') { editIsCustomTeam = true; editSelectedTeam = null; wrap.classList.add('open'); setTimeout(() => document.getElementById('editCustomTeamInput').focus(), 50); }
+        else { editIsCustomTeam = false; editSelectedTeam = value; wrap.classList.remove('open'); }
     }
 
-    function getEditTeam() {
-        if (editIsCustomTeam) return document.getElementById('editCustomTeamInput').value.trim();
-        return editSelectedTeam;
-    }
-
+    function getEditTeam() { if (editIsCustomTeam) return document.getElementById('editCustomTeamInput').value.trim(); return editSelectedTeam; }
     function triggerEditUpload() { document.getElementById('editPhotoInput').click(); }
 
     function editPreviewImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = e => {
             editImageDataURL = e.target.result;
             const prev = document.getElementById('editImagePreview');
-            prev.src = editImageDataURL;
-            prev.style.display = 'block';
+            prev.src = editImageDataURL; prev.style.display = 'block';
             document.getElementById('editUploadPlaceholder').style.display = 'none';
             document.getElementById('editRemoveImgBtn').style.display = 'flex';
             document.getElementById('editUploadArea').classList.add('has-image');
@@ -1868,8 +1627,7 @@
     }
 
     function clearEditImage(e) {
-        e.stopPropagation();
-        editImageDataURL = null;
+        e.stopPropagation(); editImageDataURL = null;
         document.getElementById('editPhotoInput').value = '';
         document.getElementById('editImagePreview').style.display = 'none';
         document.getElementById('editImagePreview').src = '';
@@ -1883,51 +1641,26 @@
         const details  = document.getElementById('editDetails').value.trim();
         const team     = getEditTeam();
         const remarks  = document.getElementById('editRemarks').value.trim();
-
         if (!editImageDataURL) { showToast('⚠ กรุณาเลือกรูปภาพ'); return; }
         if (!location)         { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
         if (!team)             { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
         if (!details)          { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
-
         const idx = defectsData.findIndex(x => x.id === editingId);
-        if (idx !== -1) {
-            defectsData[idx] = {
-                ...defectsData[idx],
-                image: editImageDataURL,
-                location, details, team, remarks
-            };
-        }
-
-        closeEditModal();
-        renderList();
-        showToast('✓ แก้ไขสำเร็จ');
+        if (idx !== -1) defectsData[idx] = { ...defectsData[idx], image: editImageDataURL, location, details, team, remarks };
+        closeEditModal(); renderList(); showToast('✓ แก้ไขสำเร็จ');
     }
 
-    // ════════════════════════════════════════════════════════════════
-    // DELETE
-    // ════════════════════════════════════════════════════════════════
+    // ── Delete ──
     let deletingId = null;
 
-    function openConfirmModal(id) {
-        deletingId = id;
-        document.getElementById('confirmModal').classList.add('open');
-    }
-
-    function closeConfirmModal() {
-        document.getElementById('confirmModal').classList.remove('open');
-        deletingId = null;
-    }
+    function openConfirmModal(id) { deletingId = id; document.getElementById('confirmModal').classList.add('open'); }
+    function closeConfirmModal()  { document.getElementById('confirmModal').classList.remove('open'); deletingId = null; }
 
     function confirmDelete() {
         if (deletingId === null) return;
         defectsData = defectsData.filter(x => x.id !== deletingId);
-        // re-number IDs sequentially
         defectsData.forEach((d, i) => d.id = i + 1);
-        closeConfirmModal();
-        updateBadge();
-        renderList();
-
-        // Update export btn visibility
+        closeConfirmModal(); updateBadge(); renderList();
         if (document.getElementById('listView').style.display !== 'none') {
             if (defectsData.length > 0) {
                 document.getElementById('exportBtn').classList.add('visible');
@@ -1938,19 +1671,15 @@
                 document.getElementById('countChip').style.display = 'none';
             }
         }
-
         showToast('🗑 ลบรายการแล้ว');
     }
 
-    // ── Toast ──
     function showToast(msg) {
         const toast = document.getElementById('toast');
-        toast.textContent = msg;
-        toast.classList.add('show');
+        toast.textContent = msg; toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2800);
     }
 
-    // ── Init ──
     renderList();
 </script>
 
