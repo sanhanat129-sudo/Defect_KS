@@ -2,2026 +2,1343 @@
 
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Defect Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Defect Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 <style>
-    :root {
-        --bg: #FFFFFF;
-        --surface: #FFFFFF;
-        --surface-2: #F5F5F5;
-        --border: #E8E8E8;
-        --text-primary: #1A1916;
-        --text-secondary: #6B6860;
-        --text-muted: #A8A49D;
-        --accent: #D4521A;
-        --accent-light: #FBF0EB;
-        --accent-2: #2A5F4F;
-        --accent-2-light: #EBF5F2;
-        --mono: 'IBM Plex Mono', monospace;
-        --sans: 'IBM Plex Sans Thai', sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-    body {
-        font-family: var(--sans);
-        background: var(--bg);
-        color: var(--text-primary);
-        height: 100svh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-    }
-
-    .app {
-        width: 100%;
-        max-width: 430px;
-        height: 100%;
-        max-height: 100svh;
-        background: var(--bg);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-
-    .header {
-        background: var(--bg);
-        padding: 20px 24px 16px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-    }
-
-    .header-left .eyebrow {
-        font-family: var(--mono);
-        font-size: 7.5px;
-        letter-spacing: 0.10em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 4px;
-    }
-
-    .header-left h1 {
-        font-size: 22px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-
-    .header-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-export {
-        display: none;
-        align-items: center;
-        gap: 6px;
-        background: var(--text-primary);
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-family: var(--sans);
-        font-size: 12px;
-        font-weight: 500;
-        cursor: pointer;
-        letter-spacing: 0.01em;
-        transition: opacity 0.15s;
-    }
-    .btn-export:active { opacity: 0.7; }
-    .btn-export.visible { display: flex; }
-
-    .count-chip {
-        font-family: var(--mono);
-        font-size: 11px;
-        font-weight: 500;
-        background: var(--surface-2);
-        color: var(--text-secondary);
-        padding: 5px 10px;
-        border-radius: 20px;
-        border: 1px solid var(--border);
-        letter-spacing: 0.05em;
-    }
-
-    main {
-        flex: 1;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 90px;
-    }
-    main::-webkit-scrollbar { display: none; }
-
-    #formView { padding: 24px; }
-    #listView { padding: 16px 24px; display: none; }
-
-    .section-title {
-        font-family: var(--mono);
-        font-size: 9px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 16px;
-    }
-
-    .upload-area {
-        width: 100%;
-        aspect-ratio: 16/9;
-        border: 1.5px dashed var(--border);
-        border-radius: 12px;
-        background: var(--surface-2);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        overflow: hidden;
-        position: relative;
-        transition: border-color 0.2s, background 0.2s;
-        margin-bottom: 20px;
-    }
-    .upload-area:active { background: #EEEEEE; }
-    .upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
-
-    .upload-placeholder {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .upload-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: #E8E8E8;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .upload-placeholder span {
-        font-size: 13px;
-        color: var(--text-muted);
-        font-weight: 400;
-    }
-
-    .upload-placeholder small {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--text-muted);
-        letter-spacing: 0.05em;
-    }
-
-    #imagePreview {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: none;
-    }
-
-    .remove-img-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 6px;
-        width: 28px;
-        height: 28px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10;
-        color: var(--text-primary);
-        transition: background 0.15s;
-    }
-    .remove-img-btn:active { background: white; }
-
-    .field { margin-bottom: 16px; }
-
-    .field label {
-        display: block;
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--text-secondary);
-        letter-spacing: 0.03em;
-        margin-bottom: 6px;
-        font-family: var(--mono);
-        text-transform: uppercase;
-    }
-
-    .field label .req { color: var(--accent); margin-left: 2px; }
-
-    input[type="text"], input[type="number"], textarea {
-        width: 100%;
-        background: var(--surface);
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        padding: 11px 14px;
-        font-family: var(--sans);
-        font-size: 14px;
-        color: var(--text-primary);
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        -webkit-appearance: none;
-    }
-
-    input[type="number"] {
-        font-family: var(--mono);
-        -moz-appearance: textfield;
-    }
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-    input[type="text"]::placeholder, input[type="number"]::placeholder, textarea::placeholder { color: var(--text-muted); }
-
-    input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
-        border-color: var(--text-primary);
-        box-shadow: 0 0 0 3px rgba(26,25,22,0.06);
-    }
-
-    textarea { resize: none; min-height: 80px; }
-
-    .team-tag-label {
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--text-secondary);
-        letter-spacing: 0.03em;
-        margin-bottom: 10px;
-        display: block;
-        font-family: var(--mono);
-        text-transform: uppercase;
-    }
-    .team-tag-label .req { color: var(--accent); margin-left: 2px; }
-
-    .team-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
-    }
-
-    .team-tag {
-        padding: 7px 13px;
-        border-radius: 8px;
-        background: var(--surface);
-        border: 1.5px solid var(--border);
-        font-size: 12.5px;
-        font-weight: 400;
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.15s;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-    .team-tag:active { transform: scale(0.97); }
-    .team-tag.selected {
-        background: var(--text-primary);
-        border-color: var(--text-primary);
-        color: white;
-        font-weight: 500;
-    }
-
-    .custom-team-wrap {
-        margin-top: 8px;
-        margin-bottom: 16px;
-        overflow: hidden;
-        max-height: 0;
-        transition: max-height 0.25s ease;
-    }
-    .custom-team-wrap.open { max-height: 60px; }
-
-    .btn-submit {
-        width: 100%;
-        background: var(--text-primary);
-        color: white;
-        border: none;
-        padding: 14px;
-        border-radius: 10px;
-        font-family: var(--sans);
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        letter-spacing: -0.01em;
-        transition: opacity 0.15s;
-        margin-top: 24px;
-    }
-    .btn-submit:active { opacity: 0.8; }
-
-    .list-stats {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .stat-chip {
-        flex: 1;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 12px 14px;
-    }
-
-    .stat-chip .stat-num {
-        font-family: var(--mono);
-        font-size: 24px;
-        font-weight: 500;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-
-    .stat-chip .stat-label {
-        font-size: 10px;
-        color: var(--text-muted);
-        margin-top: 4px;
-        letter-spacing: 0.03em;
-    }
-
-    .defect-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 12px;
-    }
-
-    .card-image {
-        width: 100%;
-        aspect-ratio: 16/7;
-        object-fit: cover;
-        display: block;
-        background: var(--surface-2);
-    }
-
-    .card-body { padding: 14px 16px; }
-
-    .card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
-
-    .card-id {
-        font-family: var(--mono);
-        font-size: 10px;
-        font-weight: 500;
-        color: var(--text-muted);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-    }
-
-    .card-date {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--text-muted);
-    }
-
-    .card-location {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-primary);
-        letter-spacing: -0.02em;
-        margin-bottom: 8px;
-    }
-
-    .card-details {
-        font-size: 12.5px;
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-        line-height: 1.5;
-    }
-
-    .card-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .team-badge {
-        font-size: 11px;
-        font-weight: 500;
-        padding: 4px 10px;
-        border-radius: 6px;
-        background: var(--surface-2);
-        color: var(--text-secondary);
-        border: 1px solid var(--border);
-    }
-
-    .card-remarks {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--text-muted);
-        font-style: italic;
-    }
-
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 60px 20px;
-        text-align: center;
-    }
-
-    .empty-icon {
-        width: 56px;
-        height: 56px;
-        background: var(--surface-2);
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 16px;
-    }
-
-    .empty-state p { font-size: 14px; color: var(--text-secondary); margin-bottom: 6px; }
-    .empty-state small { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
-
-    .bottom-nav {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: var(--bg);
-        border-top: 1px solid var(--border);
-        padding: 10px 24px 20px;
-        display: flex;
-        z-index: 20;
-    }
-
-    .nav-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 8px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        color: var(--text-muted);
-        transition: color 0.15s;
-        position: relative;
-        font-family: var(--sans);
-    }
-    .nav-btn.active { color: var(--text-primary); }
-    .nav-btn span {
-        font-size: 10px;
-        font-weight: 500;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        font-family: var(--mono);
-    }
-
-    .nav-dot {
-        position: absolute;
-        top: 6px;
-        right: 22px;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--accent);
-        display: none;
-    }
-    .nav-dot.visible { display: block; }
-
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(26,25,22,0.5);
-        z-index: 50;
-        display: none;
-        align-items: flex-end;
-        justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal-sheet {
-        background: var(--surface);
-        border-radius: 20px 20px 0 0;
-        padding: 28px 24px 36px;
-        width: 100%;
-        max-width: 430px;
-        animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
-    }
-
-    @keyframes slideUp {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-    }
-
-    .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 24px;
-    }
-
-    .modal-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
-
-    .modal-close {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        background: var(--surface-2);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-secondary);
-    }
-
-    .export-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-
-    .export-option {
-        border: 1.5px solid var(--border);
-        border-radius: 12px;
-        padding: 20px 16px;
-        cursor: pointer;
-        background: var(--surface);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        transition: all 0.15s;
-    }
-    .export-option:active { background: var(--surface-2); transform: scale(0.98); }
-
-    .export-option-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .export-option-icon.pdf { background: var(--accent-light); color: var(--accent); }
-    .export-option-icon.excel { background: var(--accent-2-light); color: var(--accent-2); }
-
-    .export-option-label { font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
-    .export-option-desc { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-
-    .loading-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(255,255,255,0.95);
-        backdrop-filter: blur(8px);
-        z-index: 60;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-    }
-    .loading-overlay.show { display: flex; }
-
-    .spinner {
-        width: 36px;
-        height: 36px;
-        border: 2px solid var(--border);
-        border-top-color: var(--text-primary);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-    .loading-sub { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
-
-    .toast {
-        position: absolute;
-        top: 80px;
-        left: 50%;
-        transform: translateX(-50%) translateY(-8px);
-        background: var(--text-primary);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 12.5px;
-        font-weight: 500;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: all 0.25s cubic-bezier(0.32,0.72,0,1);
-        z-index: 40;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    .card-actions { display: flex; gap: 6px; }
-    .card-action-btn {
-        width: 28px; height: 28px;
-        border-radius: 7px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer;
-        color: var(--text-muted);
-        transition: all 0.15s;
-        flex-shrink: 0;
-    }
-    .card-action-btn:active { background: var(--surface-2); transform: scale(0.93); }
-    .card-action-btn.edit:active { color: var(--text-primary); }
-    .card-action-btn.delete { color: #C0392B; border-color: #F5C6C6; }
-    .card-action-btn.delete:active { background: #FFF0F0; }
-
-    .edit-modal-overlay {
-        position: fixed; inset: 0;
-        background: rgba(26,25,22,0.5);
-        z-index: 55; display: none;
-        align-items: flex-end; justify-content: center;
-    }
-    .edit-modal-overlay.open { display: flex; }
-
-    .edit-modal-sheet {
-        background: var(--surface);
-        border-radius: 20px 20px 0 0;
-        padding: 0; width: 100%; max-width: 430px;
-        max-height: 92svh;
-        display: flex; flex-direction: column;
-        animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
-    }
-
-    .edit-modal-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 20px 20px 16px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-    }
-
-    .edit-modal-header-left .edit-modal-sub {
-        font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
-        text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px;
-    }
-
-    .edit-modal-title {
-        font-size: 15px; font-weight: 600;
-        letter-spacing: -0.02em; color: var(--text-primary);
-    }
-
-    .edit-modal-body { overflow-y: auto; padding: 20px 20px 0; flex: 1; }
-    .edit-modal-body::-webkit-scrollbar { display: none; }
-
-    .edit-upload-area {
-        width: 100%; aspect-ratio: 16/7;
-        border: 1.5px dashed var(--border);
-        border-radius: 10px; background: var(--surface-2);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        cursor: pointer; overflow: hidden; position: relative;
-        margin-bottom: 16px;
-        transition: border-color 0.2s, background 0.2s;
-    }
-    .edit-upload-area:active { background: #EEEEEE; }
-    .edit-upload-area.has-image { border-style: solid; border-color: var(--border); background: var(--surface); }
-
-    #editImagePreview {
-        position: absolute; inset: 0; width: 100%; height: 100%;
-        object-fit: cover; display: none;
-    }
-
-    .edit-remove-img-btn {
-        position: absolute; top: 8px; right: 8px;
-        background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
-        border: 1px solid rgba(0,0,0,0.08); border-radius: 6px;
-        width: 28px; height: 28px; display: none;
-        align-items: center; justify-content: center;
-        cursor: pointer; z-index: 10; color: var(--text-primary);
-    }
-
-    .edit-modal-footer {
-        padding: 16px 20px 28px; display: flex; gap: 10px;
-        flex-shrink: 0; border-top: 1px solid var(--border);
-    }
-
-    .btn-cancel {
-        flex: 1; background: var(--surface-2); color: var(--text-secondary);
-        border: 1px solid var(--border); padding: 13px; border-radius: 10px;
-        font-family: var(--sans); font-size: 14px; font-weight: 500;
-        cursor: pointer; transition: opacity 0.15s;
-    }
-    .btn-cancel:active { opacity: 0.7; }
-
-    .btn-save-edit {
-        flex: 2; background: var(--text-primary); color: white; border: none;
-        padding: 13px; border-radius: 10px;
-        font-family: var(--sans); font-size: 14px; font-weight: 500;
-        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
-        transition: opacity 0.15s;
-    }
-    .btn-save-edit:active { opacity: 0.8; }
-
-    .confirm-overlay {
-        position: fixed; inset: 0; background: rgba(26,25,22,0.5);
-        z-index: 58; display: none;
-        align-items: center; justify-content: center; padding: 24px;
-    }
-    .confirm-overlay.open { display: flex; }
-
-    .confirm-box {
-        background: var(--surface); border-radius: 16px; padding: 24px;
-        width: 100%; max-width: 320px; text-align: center;
-        animation: popIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
-    @keyframes popIn {
-        from { transform: scale(0.92); opacity: 0; }
-        to   { transform: scale(1);    opacity: 1; }
-    }
-
-    .confirm-icon {
-        width: 48px; height: 48px; background: #FFF0F0; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 14px; color: #C0392B;
-    }
-
-    .confirm-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; letter-spacing: -0.02em; }
-    .confirm-sub { font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
-    .confirm-actions { display: flex; gap: 10px; }
-
-    .confirm-btn-cancel {
-        flex: 1; background: var(--surface-2); color: var(--text-secondary);
-        border: 1px solid var(--border); padding: 11px; border-radius: 9px;
-        font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer;
-    }
-
-    .confirm-btn-delete {
-        flex: 1; background: #C0392B; color: white; border: none;
-        padding: 11px; border-radius: 9px;
-        font-family: var(--sans); font-size: 13px; font-weight: 500;
-        cursor: pointer; transition: opacity 0.15s;
-    }
-    .confirm-btn-delete:active { opacity: 0.8; }
-
-    .pdf-preview-overlay {
-        position: fixed; inset: 0; background: rgba(26,25,22,0.6);
-        z-index: 62; display: none; align-items: flex-end; justify-content: center;
-    }
-    .pdf-preview-overlay.open { display: flex; }
-
-    .pdf-preview-sheet {
-        background: var(--surface); border-radius: 20px 20px 0 0;
-        width: 100%; max-width: 430px; height: 92svh;
-        display: flex; flex-direction: column;
-        animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
-    }
-
-    .pdf-preview-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 20px 20px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-    }
-
-    .pdf-preview-body { flex: 1; overflow: hidden; padding: 12px 16px; background: var(--surface-2); }
-    .pdf-preview-footer {
-        padding: 14px 20px 28px; display: flex; gap: 10px;
-        flex-shrink: 0; border-top: 1px solid var(--border);
-    }
-
-    .picker-btn {
-        width: 100%; display: flex; align-items: center; gap: 14px;
-        padding: 14px 16px; background: var(--surface);
-        border: 1.5px solid var(--border); border-radius: 12px;
-        cursor: pointer; text-align: left;
-        transition: background 0.15s; font-family: var(--sans);
-    }
-    .picker-btn:active { background: var(--surface-2); }
-    .picker-btn-icon {
-        width: 44px; height: 44px; border-radius: 11px;
-        background: var(--accent-light); color: var(--accent);
-        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .picker-btn-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-    .picker-btn-text span { font-size: 14px; font-weight: 500; color: var(--text-primary); }
-    .picker-btn-text small { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
-
-    .export-bar { display: flex; gap: 10px; margin-bottom: 16px; }
-    .btn-export-inline {
-        flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
-        border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px;
-        font-family: var(--sans); font-size: 13px; font-weight: 500;
-        cursor: pointer; transition: all 0.15s; background: var(--surface); color: var(--text-primary);
-    }
-    .btn-export-inline:active { background: var(--surface-2); transform: scale(0.98); }
-    .btn-export-inline.pdf  { border-color: #F5C8B0; color: var(--accent); background: var(--accent-light); }
-    .btn-export-inline.excel { border-color: #B0D8CC; color: var(--accent-2); background: var(--accent-2-light); }
-    .btn-export-inline svg { flex-shrink: 0; }
-
-    .id-warning {
-        font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 5px; display: none;
-    }
-    .id-warning.show { display: block; }
+:root {
+    --bg:#FFFFFF;--surface:#FFFFFF;--surface-2:#F5F5F5;--border:#E8E8E8;
+    --text-primary:#1A1916;--text-secondary:#6B6860;--text-muted:#A8A49D;
+    --accent:#D4521A;--accent-light:#FBF0EB;--accent-2:#2A5F4F;--accent-2-light:#EBF5F2;
+    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans Thai',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--sans);background:var(--bg);color:var(--text-primary);
+     height:100svh;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.app{width:100%;max-width:430px;height:100%;max-height:100svh;background:var(--bg);
+     display:flex;flex-direction:column;position:relative}
+
+/* ── HEADER ── */
+.header{background:var(--bg);padding:20px 24px 16px;display:flex;align-items:flex-end;
+        justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.header-left .eyebrow{font-family:var(--mono);font-size:7.5px;letter-spacing:.10em;
+    text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+.header-left h1{font-size:22px;font-weight:600;letter-spacing:-.03em;color:var(--text-primary);line-height:1}
+.header-right{display:flex;align-items:center;gap:8px}
+
+/* sync badge */
+.sync-badge{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;
+    color:var(--text-muted);padding:4px 8px;border-radius:20px;border:1px solid var(--border);
+    background:var(--surface-2);letter-spacing:.04em;transition:all .3s}
+.sync-badge.syncing{color:var(--accent-2);border-color:#B0D8CC;background:var(--accent-2-light)}
+.sync-badge.error{color:var(--accent);border-color:#F5C8B0;background:var(--accent-light)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sync-badge.syncing .sync-dot{animation:pulse .8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.count-chip{font-family:var(--mono);font-size:11px;font-weight:500;background:var(--surface-2);
+    color:var(--text-secondary);padding:5px 10px;border-radius:20px;border:1px solid var(--border);
+    letter-spacing:.05em}
+
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px}
+main::-webkit-scrollbar{display:none}
+#formView{padding:24px}
+#listView{padding:16px 24px;display:none}
+
+.section-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:16px}
+
+/* ── UPLOAD ── */
+.upload-area{width:100%;aspect-ratio:16/9;border:1.5px dashed var(--border);border-radius:12px;
+    background:var(--surface-2);display:flex;flex-direction:column;align-items:center;
+    justify-content:center;cursor:pointer;overflow:hidden;position:relative;
+    transition:border-color .2s,background .2s;margin-bottom:20px}
+.upload-area:active{background:#EEEEEE}
+.upload-area.has-image{border-style:solid;border-color:var(--border);background:var(--surface)}
+.upload-placeholder{display:flex;flex-direction:column;align-items:center;gap:10px}
+.upload-icon{width:40px;height:40px;border-radius:10px;background:#E8E8E8;
+    display:flex;align-items:center;justify-content:center}
+.upload-placeholder span{font-size:13px;color:var(--text-muted);font-weight:400}
+.upload-placeholder small{font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:.05em}
+#imagePreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.remove-img-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.9);
+    backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.08);border-radius:6px;
+    width:28px;height:28px;display:none;align-items:center;justify-content:center;
+    cursor:pointer;z-index:10;color:var(--text-primary);transition:background .15s}
+
+/* ── FIELDS ── */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text-secondary);
+    letter-spacing:.03em;margin-bottom:6px;font-family:var(--mono);text-transform:uppercase}
+.field label .req{color:var(--accent);margin-left:2px}
+input[type="text"],input[type="number"],textarea{width:100%;background:var(--surface);
+    border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;
+    font-family:var(--sans);font-size:14px;color:var(--text-primary);outline:none;
+    transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+input[type="number"]{font-family:var(--mono);-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none}
+input::placeholder,textarea::placeholder{color:var(--text-muted)}
+input:focus,textarea:focus{border-color:var(--text-primary);box-shadow:0 0 0 3px rgba(26,25,22,.06)}
+textarea{resize:none;min-height:80px}
+
+/* ── TEAM TAGS ── */
+.team-tag-label{font-size:11px;font-weight:500;color:var(--text-secondary);letter-spacing:.03em;
+    margin-bottom:10px;display:block;font-family:var(--mono);text-transform:uppercase}
+.team-tag-label .req{color:var(--accent);margin-left:2px}
+.team-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.team-tag{padding:7px 13px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);
+    font-size:12.5px;font-weight:400;color:var(--text-secondary);cursor:pointer;
+    transition:all .15s;user-select:none;-webkit-user-select:none}
+.team-tag:active{transform:scale(.97)}
+.team-tag.selected{background:var(--text-primary);border-color:var(--text-primary);color:white;font-weight:500}
+.custom-team-wrap{margin-top:8px;margin-bottom:16px;overflow:hidden;max-height:0;transition:max-height .25s ease}
+.custom-team-wrap.open{max-height:60px}
+
+.btn-submit{width:100%;background:var(--text-primary);color:white;border:none;padding:14px;
+    border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;
+    transition:opacity .15s;margin-top:24px}
+.btn-submit:active{opacity:.8}
+
+/* ── STATS ── */
+.list-stats{display:flex;gap:10px;margin-bottom:20px}
+.stat-chip{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.stat-chip .stat-num{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--text-primary);line-height:1}
+.stat-chip .stat-label{font-size:10px;color:var(--text-muted);margin-top:4px;letter-spacing:.03em}
+
+/* ── CARDS ── */
+.defect-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    overflow:hidden;margin-bottom:12px}
+.card-image{width:100%;aspect-ratio:16/7;object-fit:cover;display:block;background:var(--surface-2)}
+.card-body{padding:14px 16px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.card-id{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text-muted);
+    letter-spacing:.1em;text-transform:uppercase}
+.card-date{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
+.card-location{font-size:14px;font-weight:600;color:var(--text-primary);letter-spacing:-.02em;margin-bottom:8px}
+.card-details{font-size:12.5px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.team-badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;
+    background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}
+.card-remarks{font-family:var(--mono);font-size:10px;color:var(--text-muted);font-style:italic}
+.card-actions{display:flex;gap:6px}
+.card-action-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);
+    background:var(--surface);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--text-muted);transition:all .15s;flex-shrink:0}
+.card-action-btn:active{background:var(--surface-2);transform:scale(.93)}
+.card-action-btn.delete{color:#C0392B;border-color:#F5C6C6}
+.card-action-btn.delete:active{background:#FFF0F0}
+
+/* ── EMPTY STATE ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:60px 20px;text-align:center}
+.empty-icon{width:56px;height:56px;background:var(--surface-2);border-radius:14px;
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.empty-state p{font-size:14px;color:var(--text-secondary);margin-bottom:6px}
+.empty-state small{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+
+/* ── NAV ── */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--bg);
+    border-top:1px solid var(--border);padding:10px 24px 20px;display:flex;z-index:20}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;
+    border:none;background:none;cursor:pointer;color:var(--text-muted);transition:color .15s;
+    position:relative;font-family:var(--sans)}
+.nav-btn.active{color:var(--text-primary)}
+.nav-btn span{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;font-family:var(--mono)}
+.nav-dot{position:absolute;top:6px;right:22px;width:6px;height:6px;border-radius:50%;
+    background:var(--accent);display:none}
+.nav-dot.visible{display:block}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,25,22,.5);z-index:50;
+    display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 36px;
+    width:100%;max-width:430px;animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-size:16px;font-weight:600;letter-spacing:-.02em}
+.modal-close{width:28px;height:28px;border-radius:6px;background:var(--surface-2);border:none;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+
+/* export options */
+.export-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.export-option{border:1.5px solid var(--border);border-radius:12px;padding:20px 16px;cursor:pointer;
+    background:var(--surface);display:flex;flex-direction:column;gap:12px;transition:all .15s}
+.export-option:active{background:var(--surface-2);transform:scale(.98)}
+.export-option-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.export-option-icon.pdf{background:var(--accent-light);color:var(--accent)}
+.export-option-icon.excel{background:var(--accent-2-light);color:var(--accent-2)}
+.export-option-label{font-size:13px;font-weight:600;color:var(--text-primary);letter-spacing:-.01em}
+.export-option-desc{font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px}
+
+/* export bar */
+.export-bar{display:flex;gap:10px;margin-bottom:16px}
+.btn-export-inline{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+    border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;
+    font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;
+    transition:all .15s;background:var(--surface);color:var(--text-primary)}
+.btn-export-inline:active{background:var(--surface-2);transform:scale(.98)}
+.btn-export-inline.pdf{border-color:#F5C8B0;color:var(--accent);background:var(--accent-light)}
+.btn-export-inline.excel{border-color:#B0D8CC;color:var(--accent-2);background:var(--accent-2-light)}
+.btn-export-inline.danger{border-color:#F5C6C6;color:#C0392B;background:#FFF8F8}
+.btn-export-inline svg{flex-shrink:0}
+
+/* loading */
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);
+    z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-overlay.show{display:flex}
+.spinner{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--text-primary);
+    border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;font-weight:500;color:var(--text-primary)}
+.loading-sub{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+
+/* toast */
+.toast{position:absolute;top:80px;left:50%;transform:translateX(-50%) translateY(-8px);
+    background:var(--text-primary);color:white;padding:10px 20px;border-radius:8px;
+    font-size:12.5px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;
+    transition:all .25s cubic-bezier(.32,.72,0,1);z-index:40}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* edit modal */
+.edit-modal-overlay{position:fixed;inset:0;background:rgba(26,25,22,.5);z-index:55;
+    display:none;align-items:flex-end;justify-content:center}
+.edit-modal-overlay.open{display:flex}
+.edit-modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:0;
+    width:100%;max-width:430px;max-height:92svh;display:flex;flex-direction:column;
+    animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+.edit-modal-header{display:flex;align-items:center;justify-content:space-between;
+    padding:20px 20px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.edit-modal-header-left .edit-modal-sub{font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--text-muted);margin-bottom:3px}
+.edit-modal-title{font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text-primary)}
+.edit-modal-body{overflow-y:auto;padding:20px 20px 0;flex:1}
+.edit-modal-body::-webkit-scrollbar{display:none}
+.edit-upload-area{width:100%;aspect-ratio:16/7;border:1.5px dashed var(--border);border-radius:10px;
+    background:var(--surface-2);display:flex;flex-direction:column;align-items:center;
+    justify-content:center;cursor:pointer;overflow:hidden;position:relative;
+    margin-bottom:16px;transition:border-color .2s,background .2s}
+.edit-upload-area:active{background:#EEEEEE}
+.edit-upload-area.has-image{border-style:solid;border-color:var(--border);background:var(--surface)}
+#editImagePreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.edit-remove-img-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);
+    backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.08);border-radius:6px;
+    width:28px;height:28px;display:none;align-items:center;justify-content:center;
+    cursor:pointer;z-index:10;color:var(--text-primary)}
+.edit-modal-footer{padding:16px 20px 28px;display:flex;gap:10px;flex-shrink:0;border-top:1px solid var(--border)}
+.btn-cancel{flex:1;background:var(--surface-2);color:var(--text-secondary);
+    border:1px solid var(--border);padding:13px;border-radius:10px;
+    font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.btn-cancel:active{opacity:.7}
+.btn-save-edit{flex:2;background:var(--text-primary);color:white;border:none;padding:13px;
+    border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s}
+.btn-save-edit:active{opacity:.8}
+
+/* confirm modal */
+.confirm-overlay{position:fixed;inset:0;background:rgba(26,25,22,.5);z-index:58;
+    display:none;align-items:center;justify-content:center;padding:24px}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border-radius:16px;padding:24px;width:100%;
+    max-width:320px;text-align:center;animation:popIn .2s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.confirm-icon{width:48px;height:48px;background:#FFF0F0;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#C0392B}
+.confirm-icon.warn{background:#FFF8E6;color:#D4841A}
+.confirm-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;letter-spacing:-.02em}
+.confirm-sub{font-size:12.5px;color:var(--text-muted);margin-bottom:20px;line-height:1.5}
+.confirm-actions{display:flex;gap:10px}
+.confirm-btn-cancel{flex:1;background:var(--surface-2);color:var(--text-secondary);
+    border:1px solid var(--border);padding:11px;border-radius:9px;
+    font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer}
+.confirm-btn-delete{flex:1;background:#C0392B;color:white;border:none;padding:11px;
+    border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:500;
+    cursor:pointer;transition:opacity .15s}
+.confirm-btn-delete:active{opacity:.8}
+.confirm-btn-warn{flex:1;background:#D4841A;color:white;border:none;padding:11px;
+    border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:500;
+    cursor:pointer;transition:opacity .15s}
+
+/* pdf preview */
+.pdf-preview-overlay{position:fixed;inset:0;background:rgba(26,25,22,.6);z-index:62;
+    display:none;align-items:flex-end;justify-content:center}
+.pdf-preview-overlay.open{display:flex}
+.pdf-preview-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;
+    max-width:430px;height:92svh;display:flex;flex-direction:column;
+    animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;
+    padding:20px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.pdf-preview-body{flex:1;overflow:hidden;padding:12px 16px;background:var(--surface-2)}
+.pdf-preview-footer{padding:14px 20px 28px;display:flex;gap:10px;flex-shrink:0;border-top:1px solid var(--border)}
+
+/* picker */
+.picker-btn{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;
+    background:var(--surface);border:1.5px solid var(--border);border-radius:12px;
+    cursor:pointer;text-align:left;transition:background .15s;font-family:var(--sans)}
+.picker-btn:active{background:var(--surface-2)}
+.picker-btn-icon{width:44px;height:44px;border-radius:11px;background:var(--accent-light);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.picker-btn-text{flex:1;display:flex;flex-direction:column;gap:2px}
+.picker-btn-text span{font-size:14px;font-weight:500;color:var(--text-primary)}
+.picker-btn-text small{font-size:11px;color:var(--text-muted);font-family:var(--mono)}
+
+.id-warning{font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:5px;display:none}
+.id-warning.show{display:block}
+
+/* loading skeleton */
+.skeleton-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    overflow:hidden;margin-bottom:12px}
+.skeleton-img{width:100%;aspect-ratio:16/7;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+    background-size:200% 100%;animation:shimmer 1.5s infinite}
+.skeleton-body{padding:14px 16px}
+.skeleton-line{height:12px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+    background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
 
 </head>
 <body>
 
 <div class="app">
-    <header class="header">
-        <div class="header-left">
-            <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
-            <h1 id="headerTitle">Defect Log</h1>
+  <header class="header">
+    <div class="header-left">
+      <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
+      <h1 id="headerTitle">Defect Log</h1>
+    </div>
+    <div class="header-right">
+      <div class="sync-badge" id="syncBadge">
+        <div class="sync-dot"></div>
+        <span id="syncText">LIVE</span>
+      </div>
+      <div class="count-chip" id="countChip" style="display:none">
+        <span id="countNum">0</span> items
+      </div>
+    </div>
+  </header>
+
+  <main id="mainScroll">
+    <!-- FORM VIEW -->
+    <div id="formView">
+      <p class="section-title">New Entry</p>
+      <input type="file" id="photoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="previewImage(event)">
+      <input type="file" id="photoInputGallery" accept="image/*" style="display:none" onchange="previewImage(event)">
+      <div class="upload-area" id="uploadArea" onclick="openPickerSheet('main')">
+        <div class="upload-placeholder" id="uploadPlaceholder">
+          <div class="upload-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <span>แตะเพื่อถ่ายรูป / อัปโหลด</span>
+          <small>JPG · PNG · HEIC</small>
         </div>
-        <div class="header-right">
-            <button class="btn-export" id="exportBtn" onclick="openExportModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Export
-            </button>
-            <div class="count-chip" id="countChip" style="display:none">
-                <span id="countNum">0</span> items
-            </div>
-        </div>
-    </header>
+        <img id="imagePreview" src="" alt="">
+        <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
 
 ```
-<main id="mainScroll">
-    <div id="formView">
-        <p class="section-title">New Entry</p>
-
-        <input type="file" id="photoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="previewImage(event)">
-        <input type="file" id="photoInputGallery" accept="image/*" style="display:none" onchange="previewImage(event)">
-
-        <div class="upload-area" id="uploadArea" onclick="openPickerSheet('main')">
-            <div class="upload-placeholder" id="uploadPlaceholder">
-                <div class="upload-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#A8A49D"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                </div>
-                <span>แตะเพื่อถ่ายรูป / อัปโหลด</span>
-                <small>JPG · PNG · HEIC</small>
-            </div>
-            <img id="imagePreview" src="" alt="">
-            <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)" aria-label="Remove image">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
-
-        <div class="field">
-            <label>เลขที่ Defect <span class="req">*</span></label>
-            <input type="number" id="defectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkDuplicateId()">
-            <div class="id-warning" id="idWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
-        </div>
-
-        <div class="field">
-            <label>Zone / ตำแหน่ง <span class="req">*</span></label>
-            <input type="text" id="location" placeholder="เช่น ระเบียงชั้น 2, ห้องนอนชั้น 3">
-        </div>
-
-        <div class="field">
-            <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
-            <div class="team-tags" id="teamTags">
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างทาสี')">ช่างทาสี</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างประปา')">ช่างประปา</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-                <div class="team-tag" onclick="selectTeam(this, 'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-                <div class="team-tag" onclick="selectTeam(this, '__other__')">อื่นๆ ...</div>
-            </div>
-            <div class="custom-team-wrap" id="customTeamWrap">
-                <input type="text" id="customTeamInput" placeholder="ระบุทีม / ประเภทงาน">
-            </div>
-        </div>
-
-        <div class="field">
-            <label>รายการที่ต้องแก้ <span class="req">*</span></label>
-            <textarea id="details" placeholder="เช่น เก็บสีใต้เหล็ก, รอยแตกร้าวผนัง, ประตูปิดไม่สนิท"></textarea>
-        </div>
-
-        <div class="field">
-            <label>หมายเหตุ</label>
-            <input type="text" id="remarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
-        </div>
-
-        <button class="btn-submit" onclick="saveDefect()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            บันทึกรายการ
-        </button>
+  <div class="field">
+    <label>เลขที่ Defect <span class="req">*</span></label>
+    <input type="number" id="defectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkDuplicateId()">
+    <div class="id-warning" id="idWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
+  </div>
+  <div class="field">
+    <label>Zone / ตำแหน่ง <span class="req">*</span></label>
+    <input type="text" id="location" placeholder="เช่น ระเบียงชั้น 2, ห้องนอนชั้น 3">
+  </div>
+  <div class="field">
+    <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
+    <div class="team-tags" id="teamTags">
+      <div class="team-tag" onclick="selectTeam(this,'ช่างทาสี')">ช่างทาสี</div>
+      <div class="team-tag" onclick="selectTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+      <div class="team-tag" onclick="selectTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+      <div class="team-tag" onclick="selectTeam(this,'ช่างประปา')">ช่างประปา</div>
+      <div class="team-tag" onclick="selectTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+      <div class="team-tag" onclick="selectTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+      <div class="team-tag" onclick="selectTeam(this,'__other__')">อื่นๆ ...</div>
     </div>
-
-    <div id="listView">
-        <div class="export-bar" id="exportBar" style="display:none">
-            <button class="btn-export-inline pdf" onclick="exportPDF()">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Export PDF
-            </button>
-            <button class="btn-export-inline excel" onclick="exportExcel()">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Export Excel
-            </button>
-        </div>
-
-        <div class="list-stats" id="listStats" style="display:none">
-            <div class="stat-chip">
-                <div class="stat-num" id="totalCount">0</div>
-                <div class="stat-label">รายการทั้งหมด</div>
-            </div>
-            <div class="stat-chip">
-                <div class="stat-num" id="teamCount">0</div>
-                <div class="stat-label">ทีมที่เกี่ยวข้อง</div>
-            </div>
-        </div>
-
-        <div id="defectsContainer"></div>
-
-        <div class="empty-state" id="emptyState">
-            <div class="empty-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </div>
-            <p>ยังไม่มีรายการ Defect</p>
-            <small>เริ่มเพิ่มรายการแรกได้เลย</small>
-        </div>
+    <div class="custom-team-wrap" id="customTeamWrap">
+      <input type="text" id="customTeamInput" placeholder="ระบุทีม / ประเภทงาน">
     </div>
-</main>
+  </div>
+  <div class="field">
+    <label>รายการที่ต้องแก้ <span class="req">*</span></label>
+    <textarea id="details" placeholder="เช่น เก็บสีใต้เหล็ก, รอยแตกร้าวผนัง, ประตูปิดไม่สนิท"></textarea>
+  </div>
+  <div class="field">
+    <label>หมายเหตุ</label>
+    <input type="text" id="remarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
+  </div>
+  <button class="btn-submit" onclick="saveDefect()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+    บันทึกรายการ
+  </button>
+</div>
 
-<nav class="bottom-nav">
+<!-- LIST VIEW -->
+<div id="listView">
+  <div class="export-bar" id="exportBar" style="display:none">
+    <button class="btn-export-inline pdf" onclick="exportPDF()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+      PDF
+    </button>
+    <button class="btn-export-inline excel" onclick="exportExcel()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Excel
+    </button>
+    <button class="btn-export-inline danger" onclick="openClearAllModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      ล้างทั้งหมด
+    </button>
+  </div>
+
+  <div class="list-stats" id="listStats" style="display:none">
+    <div class="stat-chip">
+      <div class="stat-num" id="totalCount">0</div>
+      <div class="stat-label">รายการทั้งหมด</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="teamCount">0</div>
+      <div class="stat-label">ทีมที่เกี่ยวข้อง</div>
+    </div>
+  </div>
+
+  <div id="defectsContainer"></div>
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    </div>
+    <p>ยังไม่มีรายการ Defect</p>
+    <small>เริ่มเพิ่มรายการแรกได้เลย</small>
+  </div>
+</div>
+```
+
+  </main>
+
+  <nav class="bottom-nav">
     <button class="nav-btn active" id="tab-form" onclick="switchTab('form')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
-        <span>เพิ่ม</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>เพิ่ม</span>
     </button>
     <button class="nav-btn" id="tab-list" onclick="switchTab('list')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        <span>รายการ</span>
-        <div class="nav-dot" id="navDot"></div>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>รายการ</span>
+      <div class="nav-dot" id="navDot"></div>
     </button>
-</nav>
+  </nav>
 
-<div class="toast" id="toast"></div>
-```
-
+  <div class="toast" id="toast"></div>
 </div>
 
-<!-- Export Modal -->
-
-<div class="modal-overlay" id="exportModal" onclick="closeExportOnOverlay(event)">
-    <div class="modal-sheet">
-        <div class="modal-header">
-            <span class="modal-title">ส่งออกรายงาน</span>
-            <button class="modal-close" onclick="closeExportModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="export-options">
-            <div class="export-option" onclick="exportPDF()">
-                <div class="export-option-icon pdf">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                </div>
-                <div>
-                    <div class="export-option-label">PDF Report</div>
-                    <div class="export-option-desc">รูปภาพ + รายละเอียด</div>
-                </div>
-            </div>
-            <div class="export-option" onclick="exportExcel()">
-                <div class="export-option-icon excel">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </div>
-                <div>
-                    <div class="export-option-label">Excel Data</div>
-                    <div class="export-option-desc">ตารางพร้อมรูปภาพ</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Photo Picker Sheet -->
+<!-- Photo Picker -->
 
 <div class="modal-overlay" id="pickerSheet" onclick="closePickerSheet(event)">
-    <div class="modal-sheet" style="padding-bottom:32px">
-        <div class="modal-header">
-            <span class="modal-title">เลือกรูปภาพ</span>
-            <button class="modal-close" onclick="document.getElementById('pickerSheet').classList.remove('open')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-            <button class="picker-btn" onclick="pickerChoose('camera')">
-                <div class="picker-btn-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                </div>
-                <div class="picker-btn-text">
-                    <span>ถ่ายรูปใหม่</span>
-                    <small>เปิดกล้องถ่ายรูป</small>
-                </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--text-muted)"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-            <button class="picker-btn" onclick="pickerChoose('gallery')">
-                <div class="picker-btn-icon" style="background:var(--accent-2-light);color:var(--accent-2)">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                </div>
-                <div class="picker-btn-text">
-                    <span>เลือกจากแกลเลอรี่</span>
-                    <small>รูปในอัลบั้มของคุณ</small>
-                </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--text-muted)"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-        </div>
+  <div class="modal-sheet" style="padding-bottom:32px">
+    <div class="modal-header">
+      <span class="modal-title">เลือกรูปภาพ</span>
+      <button class="modal-close" onclick="document.getElementById('pickerSheet').classList.remove('open')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
     </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="picker-btn" onclick="pickerChoose('camera')">
+        <div class="picker-btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+        <div class="picker-btn-text"><span>ถ่ายรูปใหม่</span><small>เปิดกล้องถ่ายรูป</small></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <button class="picker-btn" onclick="pickerChoose('gallery')">
+        <div class="picker-btn-icon" style="background:var(--accent-2-light);color:var(--accent-2)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <div class="picker-btn-text"><span>เลือกจากแกลเลอรี่</span><small>รูปในอัลบั้มของคุณ</small></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
 </div>
 
-<!-- PDF Preview Modal -->
+<!-- PDF Preview -->
 
 <div class="pdf-preview-overlay" id="pdfPreviewModal">
-    <div class="pdf-preview-sheet">
-        <div class="pdf-preview-header">
-            <div>
-                <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">ตัวอย่างรายงาน</div>
-                <div style="font-size:15px;font-weight:600;letter-spacing:-0.02em;color:var(--text-primary)" id="pdfPreviewTitle">Defect_Report.pdf</div>
-            </div>
-            <button class="modal-close" onclick="closePdfPreview()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="pdf-preview-body">
-            <iframe id="pdfPreviewFrame" src="" style="width:100%;height:100%;border:none;border-radius:8px;background:#f0f0f0"></iframe>
-        </div>
-        <div class="pdf-preview-footer">
-            <button class="btn-cancel" onclick="closePdfPreview()">ปิด</button>
-            <button class="btn-save-edit" id="pdfDownloadBtn" onclick="downloadCurrentPdf()">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                ดาวน์โหลด PDF
-            </button>
-        </div>
+  <div class="pdf-preview-sheet">
+    <div class="pdf-preview-header">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">ตัวอย่างรายงาน</div>
+        <div style="font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text-primary)" id="pdfPreviewTitle">Defect_Report.pdf</div>
+      </div>
+      <button class="modal-close" onclick="closePdfPreview()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
+    <div class="pdf-preview-body">
+      <iframe id="pdfPreviewFrame" src="" style="width:100%;height:100%;border:none;border-radius:8px;background:#f0f0f0"></iframe>
+    </div>
+    <div class="pdf-preview-footer">
+      <button class="btn-cancel" onclick="closePdfPreview()">ปิด</button>
+      <button class="btn-save-edit" onclick="downloadCurrentPdf()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        ดาวน์โหลด PDF
+      </button>
+    </div>
+  </div>
 </div>
 
+<!-- Loading -->
+
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-    <div class="loading-text">กำลังสร้างไฟล์...</div>
-    <div class="loading-sub">กรุณารอสักครู่</div>
+  <div class="spinner"></div>
+  <div class="loading-text">กำลังสร้างไฟล์...</div>
+  <div class="loading-sub">กรุณารอสักครู่</div>
 </div>
 
 <!-- Edit Modal -->
 
 <div class="edit-modal-overlay" id="editModal" onclick="closeEditOnOverlay(event)">
-    <div class="edit-modal-sheet">
-        <div class="edit-modal-header">
-            <div class="edit-modal-header-left">
-                <div class="edit-modal-sub">แก้ไขรายการ</div>
-                <div class="edit-modal-title" id="editModalTitle">DEF — 001</div>
-            </div>
-            <button class="modal-close" onclick="closeEditModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
-
-```
+  <div class="edit-modal-sheet">
+    <div class="edit-modal-header">
+      <div class="edit-modal-header-left">
+        <div class="edit-modal-sub">แก้ไขรายการ</div>
+        <div class="edit-modal-title" id="editModalTitle">DEF — 001</div>
+      </div>
+      <button class="modal-close" onclick="closeEditModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
     <div class="edit-modal-body">
-        <input type="file" id="editPhotoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
-        <input type="file" id="editPhotoInputGallery" accept="image/*" style="display:none" onchange="editPreviewImage(event)">
-
-        <div class="edit-upload-area" id="editUploadArea" onclick="openPickerSheet('edit')">
-            <div class="upload-placeholder" id="editUploadPlaceholder">
-                <div class="upload-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#A8A49D"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                </div>
-                <span style="font-size:13px;color:var(--text-muted)">แตะเพื่อเปลี่ยนรูป</span>
-            </div>
-            <img id="editImagePreview" src="" alt="">
-            <button class="edit-remove-img-btn" id="editRemoveImgBtn" onclick="clearEditImage(event)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
+      <input type="file" id="editPhotoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
+      <input type="file" id="editPhotoInputGallery" accept="image/*" style="display:none" onchange="editPreviewImage(event)">
+      <div class="edit-upload-area" id="editUploadArea" onclick="openPickerSheet('edit')">
+        <div class="upload-placeholder" id="editUploadPlaceholder">
+          <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+          <span style="font-size:13px;color:var(--text-muted)">แตะเพื่อเปลี่ยนรูป</span>
         </div>
-
-        <div class="field">
-            <label>เลขที่ Defect <span class="req">*</span></label>
-            <input type="number" id="editDefectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkEditDuplicateId()">
-            <div class="id-warning" id="editIdWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
+        <img id="editImagePreview" src="" alt="">
+        <button class="edit-remove-img-btn" id="editRemoveImgBtn" onclick="clearEditImage(event)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="field">
+        <label>เลขที่ Defect <span class="req">*</span></label>
+        <input type="number" id="editDefectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkEditDuplicateId()">
+        <div class="id-warning" id="editIdWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
+      </div>
+      <div class="field">
+        <label>Zone / ตำแหน่ง <span class="req">*</span></label>
+        <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
+      </div>
+      <div class="field">
+        <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
+        <div class="team-tags" id="editTeamTags">
+          <div class="team-tag" onclick="selectEditTeam(this,'ช่างทาสี')">ช่างทาสี</div>
+          <div class="team-tag" onclick="selectEditTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+          <div class="team-tag" onclick="selectEditTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+          <div class="team-tag" onclick="selectEditTeam(this,'ช่างประปา')">ช่างประปา</div>
+          <div class="team-tag" onclick="selectEditTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+          <div class="team-tag" onclick="selectEditTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+          <div class="team-tag" onclick="selectEditTeam(this,'__other__')">อื่นๆ ...</div>
         </div>
-
-        <div class="field">
-            <label>Zone / ตำแหน่ง <span class="req">*</span></label>
-            <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
+        <div class="custom-team-wrap" id="editCustomTeamWrap">
+          <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
         </div>
-
-        <div class="field">
-            <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
-            <div class="team-tags" id="editTeamTags">
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างทาสี')">ช่างทาสี</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างประปา')">ช่างประปา</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-                <div class="team-tag" onclick="selectEditTeam(this, 'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-                <div class="team-tag" onclick="selectEditTeam(this, '__other__')">อื่นๆ ...</div>
-            </div>
-            <div class="custom-team-wrap" id="editCustomTeamWrap">
-                <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
-            </div>
-        </div>
-
-        <div class="field">
-            <label>รายการที่ต้องแก้ <span class="req">*</span></label>
-            <textarea id="editDetails" placeholder="เช่น เก็บสีใต้เหล็ก"></textarea>
-        </div>
-
-        <div class="field" style="margin-bottom:8px">
-            <label>หมายเหตุ</label>
-            <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
-        </div>
+      </div>
+      <div class="field">
+        <label>รายการที่ต้องแก้ <span class="req">*</span></label>
+        <textarea id="editDetails" placeholder="เช่น เก็บสีใต้เหล็ก"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>หมายเหตุ</label>
+        <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
+      </div>
     </div>
-
     <div class="edit-modal-footer">
-        <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
-        <button class="btn-save-edit" onclick="saveEdit()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            บันทึกการแก้ไข
-        </button>
+      <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
+      <button class="btn-save-edit" onclick="saveEdit()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        บันทึกการแก้ไข
+      </button>
     </div>
-</div>
-```
-
+  </div>
 </div>
 
 <!-- Delete Confirm -->
 
 <div class="confirm-overlay" id="confirmModal">
-    <div class="confirm-box">
-        <div class="confirm-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </div>
-        <div class="confirm-title">ลบรายการนี้?</div>
-        <div class="confirm-sub">การลบไม่สามารถกู้คืนได้<br>ต้องการดำเนินการต่อหรือไม่</div>
-        <div class="confirm-actions">
-            <button class="confirm-btn-cancel" onclick="closeConfirmModal()">ยกเลิก</button>
-            <button class="confirm-btn-delete" onclick="confirmDelete()">ลบรายการ</button>
-        </div>
+  <div class="confirm-box">
+    <div class="confirm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></div>
+    <div class="confirm-title">ลบรายการนี้?</div>
+    <div class="confirm-sub">การลบไม่สามารถกู้คืนได้<br>ต้องการดำเนินการต่อหรือไม่</div>
+    <div class="confirm-actions">
+      <button class="confirm-btn-cancel" onclick="closeConfirmModal()">ยกเลิก</button>
+      <button class="confirm-btn-delete" onclick="confirmDelete()">ลบรายการ</button>
     </div>
+  </div>
+</div>
+
+<!-- Clear All Confirm -->
+
+<div class="confirm-overlay" id="clearAllModal">
+  <div class="confirm-box">
+    <div class="confirm-icon warn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="confirm-title">ล้างข้อมูลทั้งหมด?</div>
+    <div class="confirm-sub">จะลบรายการ Defect ทั้งหมดออกจากระบบ<br>ทุกคนที่ใช้งานอยู่จะเห็นการเปลี่ยนแปลงนี้<br><strong>ไม่สามารถกู้คืนได้</strong></div>
+    <div class="confirm-actions">
+      <button class="confirm-btn-cancel" onclick="closeClearAllModal()">ยกเลิก</button>
+      <button class="confirm-btn-warn" onclick="confirmClearAll()">ล้างทั้งหมด</button>
+    </div>
+  </div>
 </div>
 
 <script>
-    // ── State ──
-    let defectsData = [];
-    let currentImageDataURL = null;
-    let selectedTeam = null;
-    let isCustomTeam = false;
+// ════════════════════════════════════════════════════════════════
+// STORAGE ENGINE — shared persistent storage with polling sync
+// Each defect stored as individual key: "defect:ID"
+// Index stored as "defect_index" (array of IDs)
+// ════════════════════════════════════════════════════════════════
 
-    function checkDuplicateId() {
-        const val = parseInt(document.getElementById('defectNumber').value);
-        const warn = document.getElementById('idWarning');
-        if (val && defectsData.some(d => d.id === val)) {
-            warn.classList.add('show');
-        } else {
-            warn.classList.remove('show');
-        }
-    }
+const STORAGE_KEY_INDEX = 'defect_index';
+const STORAGE_PREFIX    = 'defect:';
+const POLL_INTERVAL_MS  = 5000; // sync every 5s
 
-    function selectTeam(el, value) {
-        document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
-        el.classList.add('selected');
-        const wrap = document.getElementById('customTeamWrap');
-        if (value === '__other__') {
-            isCustomTeam = true;
-            selectedTeam = null;
-            wrap.classList.add('open');
-            setTimeout(() => document.getElementById('customTeamInput').focus(), 50);
-        } else {
-            isCustomTeam = false;
-            selectedTeam = value;
-            wrap.classList.remove('open');
-        }
-    }
+let defectsData  = [];   // local cache
+let _pollTimer   = null;
+let _lastIndexStr = '';  // to detect remote changes
 
-    function getSelectedTeam() {
-        if (isCustomTeam) return document.getElementById('customTeamInput').value.trim();
-        return selectedTeam;
-    }
+// ── LOW-LEVEL STORAGE ──
+async function storageGet(key) {
+    try {
+        const r = await window.storage.get(key, true);
+        return r ? r.value : null;
+    } catch { return null; }
+}
 
-    let _pickerTarget = 'main';
+async function storageSet(key, value) {
+    try {
+        await window.storage.set(key, value, true);
+        return true;
+    } catch (e) { console.warn('storageSet failed', key, e); return false; }
+}
 
-    function openPickerSheet(target) {
-        _pickerTarget = target;
-        document.getElementById('pickerSheet').classList.add('open');
-    }
+async function storageDelete(key) {
+    try {
+        await window.storage.delete(key, true);
+        return true;
+    } catch { return false; }
+}
 
-    function closePickerSheet(e) {
-        if (e.target === document.getElementById('pickerSheet'))
-            document.getElementById('pickerSheet').classList.remove('open');
-    }
-
-    function pickerChoose(source) {
-        document.getElementById('pickerSheet').classList.remove('open');
-        if (_pickerTarget === 'main') {
-            const el = source === 'camera'
-                ? document.getElementById('photoInputCamera')
-                : document.getElementById('photoInputGallery');
-            el.value = ''; el.click();
-        } else {
-            const el = source === 'camera'
-                ? document.getElementById('editPhotoInputCamera')
-                : document.getElementById('editPhotoInputGallery');
-            el.value = ''; el.click();
-        }
-    }
-
-    function previewImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            currentImageDataURL = e.target.result;
-            const preview = document.getElementById('imagePreview');
-            preview.src = currentImageDataURL;
-            preview.style.display = 'block';
-            document.getElementById('uploadPlaceholder').style.display = 'none';
-            document.getElementById('removeImgBtn').style.display = 'flex';
-            document.getElementById('uploadArea').classList.add('has-image');
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function clearImage(e) {
-        e.stopPropagation();
-        currentImageDataURL = null;
-        document.getElementById('photoInputCamera').value  = '';
-        document.getElementById('photoInputGallery').value = '';
-        document.getElementById('imagePreview').style.display = 'none';
-        document.getElementById('imagePreview').src = '';
-        document.getElementById('uploadPlaceholder').style.display = 'flex';
-        document.getElementById('removeImgBtn').style.display = 'none';
-        document.getElementById('uploadArea').classList.remove('has-image');
-    }
-
-    function saveDefect() {
-        const defectNumVal = document.getElementById('defectNumber').value.trim();
-        const location     = document.getElementById('location').value.trim();
-        const details      = document.getElementById('details').value.trim();
-        const team         = getSelectedTeam();
-        const remarks      = document.getElementById('remarks').value.trim();
-
-        if (!currentImageDataURL) { showToast('⚠ กรุณาถ่ายรูปก่อนบันทึก'); return; }
-        if (!defectNumVal)        { showToast('⚠ กรุณากรอกเลขที่ Defect'); return; }
-
-        const defectNum = parseInt(defectNumVal);
-        if (isNaN(defectNum) || defectNum < 1) { showToast('⚠ เลขที่ Defect ต้องเป็นตัวเลขบวก'); return; }
-        if (defectsData.some(d => d.id === defectNum)) { showToast('⚠ เลขที่ ' + defectNum + ' มีอยู่แล้ว'); return; }
-
-        if (!location) { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
-        if (!team)     { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
-        if (!details)  { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
-
-        defectsData.push({
-            id: defectNum,
-            timestamp: new Date().toISOString(),
-            image: currentImageDataURL,
-            location, details, team, remarks
-        });
-
-        defectsData.sort((a, b) => a.id - b.id);
-
-        updateBadge();
-        renderList();
-        showToast('✓ บันทึกสำเร็จ');
-
-        document.getElementById('defectNumber').value = '';
-        document.getElementById('location').value     = '';
-        document.getElementById('details').value      = '';
-        document.getElementById('remarks').value      = '';
-        document.getElementById('customTeamInput').value = '';
-        document.getElementById('idWarning').classList.remove('show');
-        document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
-        document.getElementById('customTeamWrap').classList.remove('open');
-        selectedTeam = null;
-        isCustomTeam = false;
-        clearImage(new Event('click'));
-        document.getElementById('mainScroll').scrollTop = 0;
-    }
-
-    function renderList() {
-        const container = document.getElementById('defectsContainer');
-        const empty     = document.getElementById('emptyState');
-        const stats     = document.getElementById('listStats');
-        container.innerHTML = '';
-
-        const exportBar = document.getElementById('exportBar');
-        if (defectsData.length === 0) {
-            empty.style.display = 'flex';
-            stats.style.display = 'none';
-            if (exportBar) exportBar.style.display = 'none';
+// ── LOAD ALL FROM STORAGE ──
+async function loadAllFromStorage() {
+    setSyncState('syncing', 'กำลังโหลด...');
+    try {
+        const indexStr = await storageGet(STORAGE_KEY_INDEX);
+        if (!indexStr) {
+            defectsData = [];
+            _lastIndexStr = '';
+            setSyncState('ok', 'LIVE');
             return;
         }
+        const ids = JSON.parse(indexStr);
+        _lastIndexStr = indexStr;
 
-        empty.style.display = 'none';
-        stats.style.display = 'flex';
-        if (exportBar) exportBar.style.display = 'flex';
-        document.getElementById('totalCount').textContent = defectsData.length;
-        document.getElementById('teamCount').textContent  = new Set(defectsData.map(d => d.team)).size;
+        // Load each defect in parallel (chunked to avoid rate limit)
+        const loaded = [];
+        const CHUNK = 10;
+        for (let i = 0; i < ids.length; i += CHUNK) {
+            const chunk = ids.slice(i, i + CHUNK);
+            const results = await Promise.all(
+                chunk.map(id => storageGet(STORAGE_PREFIX + id))
+            );
+            results.forEach((r, idx) => {
+                if (r) {
+                    try { loaded.push(JSON.parse(r)); } catch {}
+                }
+            });
+        }
+        // sort ascending
+        loaded.sort((a, b) => a.id - b.id);
+        defectsData = loaded;
+        setSyncState('ok', 'LIVE');
+    } catch (e) {
+        console.error('loadAllFromStorage error', e);
+        setSyncState('error', 'ERROR');
+    }
+    updateUI();
+}
 
-        const sorted = [...defectsData].sort((a, b) => a.id - b.id);
+// ── SAVE ONE DEFECT ──
+async function saveOneToStorage(d) {
+    // Save defect data
+    await storageSet(STORAGE_PREFIX + d.id, JSON.stringify(d));
+    // Update index
+    const ids = defectsData.map(x => x.id);
+    if (!ids.includes(d.id)) ids.push(d.id);
+    ids.sort((a, b) => a - b);
+    await storageSet(STORAGE_KEY_INDEX, JSON.stringify(ids));
+}
 
-        sorted.forEach(d => {
-            const date    = new Date(d.timestamp);
-            const dateStr = `${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getFullYear()}`;
-            container.innerHTML += `
-                <div class="defect-card" id="card-${d.id}">
-                    <img class="card-image" src="${d.image}" alt="defect ${d.id}">
-                    <div class="card-body">
-                        <div class="card-header">
-                            <span class="card-id">DEF — ${String(d.id).padStart(3,'0')}</span>
-                            <div class="card-actions">
-                                <button class="card-action-btn edit" onclick="openEditModal(${d.id})" title="แก้ไข">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                </button>
-                                <button class="card-action-btn delete" onclick="openConfirmModal(${d.id})" title="ลบ">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-location">📍 ${d.location}</div>
-                        <div class="card-details">${d.details}</div>
-                        <div class="card-footer">
-                            <span class="team-badge">${d.team}</span>
-                            ${d.remarks ? `<span class="card-remarks">${d.remarks}</span>` : `<span class="card-date">${dateStr}</span>`}
-                        </div>
+// ── DELETE ONE FROM STORAGE ──
+async function deleteOneFromStorage(id) {
+    await storageDelete(STORAGE_PREFIX + id);
+    const ids = defectsData.map(x => x.id).filter(x => x !== id);
+    ids.sort((a, b) => a - b);
+    await storageSet(STORAGE_KEY_INDEX, JSON.stringify(ids));
+}
+
+// ── CLEAR ALL FROM STORAGE ──
+async function clearAllFromStorage() {
+    const ids = defectsData.map(x => x.id);
+    await Promise.all(ids.map(id => storageDelete(STORAGE_PREFIX + id)));
+    await storageSet(STORAGE_KEY_INDEX, JSON.stringify([]));
+    _lastIndexStr = '[]';
+}
+
+// ── POLLING: detect remote changes ──
+async function pollForChanges() {
+    try {
+        const indexStr = await storageGet(STORAGE_KEY_INDEX);
+        const current  = indexStr || '[]';
+        if (current !== _lastIndexStr) {
+            _lastIndexStr = current;
+            await loadAllFromStorage();
+        }
+    } catch {}
+}
+
+function startPolling() {
+    if (_pollTimer) clearInterval(_pollTimer);
+    _pollTimer = setInterval(pollForChanges, POLL_INTERVAL_MS);
+}
+
+function setSyncState(state, text) {
+    const badge = document.getElementById('syncBadge');
+    const span  = document.getElementById('syncText');
+    badge.className = 'sync-badge' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+    span.textContent = text;
+}
+
+// ════════════════════════════════════════════════════════════════
+// APP STATE
+// ════════════════════════════════════════════════════════════════
+let currentImageDataURL = null;
+let selectedTeam        = null;
+let isCustomTeam        = false;
+let _pickerTarget       = 'main';
+let editingId           = null;
+let editImageDataURL    = null;
+let editSelectedTeam    = null;
+let editIsCustomTeam    = false;
+let deletingId          = null;
+
+// ── DUPLICATE ID CHECK ──
+function checkDuplicateId() {
+    const val  = parseInt(document.getElementById('defectNumber').value);
+    const warn = document.getElementById('idWarning');
+    warn.classList.toggle('show', val && defectsData.some(d => d.id === val));
+}
+
+// ── TEAM SELECTION ──
+function selectTeam(el, value) {
+    document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    if (value === '__other__') {
+        isCustomTeam = true; selectedTeam = null;
+        document.getElementById('customTeamWrap').classList.add('open');
+        setTimeout(() => document.getElementById('customTeamInput').focus(), 50);
+    } else {
+        isCustomTeam = false; selectedTeam = value;
+        document.getElementById('customTeamWrap').classList.remove('open');
+    }
+}
+function getSelectedTeam() {
+    return isCustomTeam ? document.getElementById('customTeamInput').value.trim() : selectedTeam;
+}
+
+// ── PHOTO PICKER ──
+function openPickerSheet(target) {
+    _pickerTarget = target;
+    document.getElementById('pickerSheet').classList.add('open');
+}
+function closePickerSheet(e) {
+    if (e.target === document.getElementById('pickerSheet'))
+        document.getElementById('pickerSheet').classList.remove('open');
+}
+function pickerChoose(source) {
+    document.getElementById('pickerSheet').classList.remove('open');
+    const prefix = _pickerTarget === 'main' ? '' : 'edit';
+    const cap    = source === 'camera' ? 'Camera' : 'Gallery';
+    const el     = document.getElementById(`${prefix}photoInput${cap}`) ||
+                   document.getElementById(`${prefix === '' ? '' : prefix}PhotoInput${cap}`);
+    // resolve IDs
+    const id = _pickerTarget === 'main'
+        ? (source === 'camera' ? 'photoInputCamera' : 'photoInputGallery')
+        : (source === 'camera' ? 'editPhotoInputCamera' : 'editPhotoInputGallery');
+    const input = document.getElementById(id);
+    input.value = ''; input.click();
+}
+
+function previewImage(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        currentImageDataURL = e.target.result;
+        const preview = document.getElementById('imagePreview');
+        preview.src = currentImageDataURL; preview.style.display = 'block';
+        document.getElementById('uploadPlaceholder').style.display = 'none';
+        document.getElementById('removeImgBtn').style.display = 'flex';
+        document.getElementById('uploadArea').classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+}
+function clearImage(e) {
+    e && e.stopPropagation();
+    currentImageDataURL = null;
+    ['photoInputCamera','photoInputGallery'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('imagePreview').src = '';
+    document.getElementById('uploadPlaceholder').style.display = 'flex';
+    document.getElementById('removeImgBtn').style.display = 'none';
+    document.getElementById('uploadArea').classList.remove('has-image');
+}
+
+// ── SAVE DEFECT ──
+async function saveDefect() {
+    const defectNumVal = document.getElementById('defectNumber').value.trim();
+    const location     = document.getElementById('location').value.trim();
+    const details      = document.getElementById('details').value.trim();
+    const team         = getSelectedTeam();
+    const remarks      = document.getElementById('remarks').value.trim();
+
+    if (!currentImageDataURL) { showToast('⚠ กรุณาถ่ายรูปก่อนบันทึก'); return; }
+    if (!defectNumVal)        { showToast('⚠ กรุณากรอกเลขที่ Defect'); return; }
+    const defectNum = parseInt(defectNumVal);
+    if (isNaN(defectNum) || defectNum < 1) { showToast('⚠ เลขที่ Defect ต้องเป็นตัวเลขบวก'); return; }
+    if (defectsData.some(d => d.id === defectNum)) { showToast('⚠ เลขที่ ' + defectNum + ' มีอยู่แล้ว'); return; }
+    if (!location) { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
+    if (!team)     { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
+    if (!details)  { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
+
+    setSyncState('syncing', 'กำลังบันทึก...');
+    const entry = { id: defectNum, timestamp: new Date().toISOString(), image: currentImageDataURL, location, details, team, remarks };
+    defectsData.push(entry);
+    defectsData.sort((a, b) => a.id - b.id);
+
+    await saveOneToStorage(entry);
+    setSyncState('ok', 'LIVE');
+
+    // Update index string so poll doesn't retrigger
+    _lastIndexStr = JSON.stringify(defectsData.map(x => x.id));
+
+    updateUI();
+    showToast('✓ บันทึกสำเร็จ');
+
+    // Reset form
+    document.getElementById('defectNumber').value = '';
+    document.getElementById('location').value     = '';
+    document.getElementById('details').value      = '';
+    document.getElementById('remarks').value      = '';
+    document.getElementById('customTeamInput').value = '';
+    document.getElementById('idWarning').classList.remove('show');
+    document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
+    document.getElementById('customTeamWrap').classList.remove('open');
+    selectedTeam = null; isCustomTeam = false;
+    clearImage();
+    document.getElementById('mainScroll').scrollTop = 0;
+}
+
+// ── RENDER LIST ──
+function renderList() {
+    const container = document.getElementById('defectsContainer');
+    const empty     = document.getElementById('emptyState');
+    const stats     = document.getElementById('listStats');
+    const exportBar = document.getElementById('exportBar');
+    container.innerHTML = '';
+
+    if (defectsData.length === 0) {
+        empty.style.display   = 'flex';
+        stats.style.display   = 'none';
+        exportBar.style.display = 'none';
+        return;
+    }
+    empty.style.display   = 'none';
+    stats.style.display   = 'flex';
+    exportBar.style.display = 'flex';
+    document.getElementById('totalCount').textContent = defectsData.length;
+    document.getElementById('teamCount').textContent  = new Set(defectsData.map(d => d.team)).size;
+
+    const sorted = [...defectsData].sort((a, b) => a.id - b.id);
+    sorted.forEach(d => {
+        const date    = new Date(d.timestamp);
+        const dateStr = `${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getFullYear()}`;
+        container.innerHTML += `
+        <div class="defect-card" id="card-${d.id}">
+            <img class="card-image" src="${d.image}" alt="defect ${d.id}">
+            <div class="card-body">
+                <div class="card-header">
+                    <span class="card-id">DEF — ${String(d.id).padStart(3,'0')}</span>
+                    <div class="card-actions">
+                        <button class="card-action-btn edit" onclick="openEditModal(${d.id})" title="แก้ไข">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="card-action-btn delete" onclick="openConfirmModal(${d.id})" title="ลบ">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                        </button>
                     </div>
-                </div>`;
-        });
+                </div>
+                <div class="card-location">📍 ${d.location}</div>
+                <div class="card-details">${d.details}</div>
+                <div class="card-footer">
+                    <span class="team-badge">${d.team}</span>
+                    ${d.remarks ? `<span class="card-remarks">${d.remarks}</span>` : `<span class="card-date">${dateStr}</span>`}
+                </div>
+            </div>
+        </div>`;
+    });
+}
+
+function updateUI() {
+    updateBadge();
+    const isListTab = document.getElementById('listView').style.display !== 'none';
+    if (isListTab) renderList();
+    // Update count chip
+    if (defectsData.length > 0) {
+        document.getElementById('countChip').style.display = 'block';
+        document.getElementById('countNum').textContent     = defectsData.length;
+    } else {
+        document.getElementById('countChip').style.display = 'none';
     }
+}
 
-    function switchTab(tab) {
-        const fv = document.getElementById('formView');
-        const lv = document.getElementById('listView');
+// ── TAB SWITCH ──
+function switchTab(tab) {
+    const fv = document.getElementById('formView');
+    const lv = document.getElementById('listView');
+    if (tab === 'form') {
+        fv.style.display = 'block'; lv.style.display = 'none';
+        document.getElementById('headerEyebrow').textContent = 'Quality Control';
+        document.getElementById('headerTitle').textContent   = 'Defect Log';
+        document.getElementById('countChip').style.display   = 'none';
+        document.getElementById('tab-form').classList.add('active');
+        document.getElementById('tab-list').classList.remove('active');
+    } else {
+        fv.style.display = 'none'; lv.style.display = 'block';
+        document.getElementById('headerEyebrow').textContent = 'All Records';
+        document.getElementById('headerTitle').textContent   = 'รายการทั้งหมด';
+        document.getElementById('tab-list').classList.add('active');
+        document.getElementById('tab-form').classList.remove('active');
+        if (defectsData.length > 0) {
+            document.getElementById('countChip').style.display = 'block';
+            document.getElementById('countNum').textContent     = defectsData.length;
+        }
+        renderList();
+    }
+}
 
-        if (tab === 'form') {
-            fv.style.display = 'block';
-            lv.style.display = 'none';
-            document.getElementById('headerEyebrow').textContent = 'Quality Control';
-            document.getElementById('headerTitle').textContent   = 'Defect Log';
-            document.getElementById('exportBtn').classList.remove('visible');
-            document.getElementById('countChip').style.display   = 'none';
-            document.getElementById('tab-form').classList.add('active');
-            document.getElementById('tab-list').classList.remove('active');
-        } else {
-            fv.style.display = 'none';
-            lv.style.display = 'block';
-            document.getElementById('headerEyebrow').textContent = 'All Records';
-            document.getElementById('headerTitle').textContent   = 'รายการทั้งหมด';
-            document.getElementById('tab-list').classList.add('active');
-            document.getElementById('tab-form').classList.remove('active');
+function updateBadge() {
+    document.getElementById('navDot').classList.toggle('visible', defectsData.length > 0);
+}
 
-            if (defectsData.length > 0) {
-                document.getElementById('exportBtn').classList.add('visible');
-                document.getElementById('countChip').style.display = 'block';
-                document.getElementById('countNum').textContent     = defectsData.length;
-            } else {
-                document.getElementById('exportBtn').classList.remove('visible');
-                document.getElementById('countChip').style.display = 'none';
+// ── CLEAR ALL ──
+function openClearAllModal()  { document.getElementById('clearAllModal').classList.add('open'); }
+function closeClearAllModal() { document.getElementById('clearAllModal').classList.remove('open'); }
+async function confirmClearAll() {
+    closeClearAllModal();
+    setSyncState('syncing', 'กำลังลบ...');
+    await clearAllFromStorage();
+    defectsData = [];
+    setSyncState('ok', 'LIVE');
+    updateUI();
+    showToast('🗑 ล้างข้อมูลทั้งหมดแล้ว');
+}
+
+// ════════════════════════════════════════════════════════════════
+// PDF EXPORT
+// ════════════════════════════════════════════════════════════════
+async function ensureFontsLoaded() { if (document.fonts?.ready) await document.fonts.ready; }
+function loadImageEl(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img); img.onerror = () => reject(); img.src = src;
+    });
+}
+function drawCover(ctx, img, x, y, w, h) {
+    const iR = img.width/img.height, bR = w/h;
+    let sx,sy,sw,sh;
+    if (iR>bR){sh=img.height;sw=sh*bR;sx=(img.width-sw)/2;sy=0;}
+    else{sw=img.width;sh=sw/bR;sx=0;sy=(img.height-sh)/2;}
+    ctx.drawImage(img,sx,sy,sw,sh,x,y,w,h);
+}
+function drawWrappedText(ctx,text,x,y,maxW,lineHeight,maxLines){
+    const words=text.split(/(\s+)/); const lines=[]; let current='';
+    for(const word of words){
+        const test=current+word;
+        if(ctx.measureText(test).width<=maxW){current=test;}
+        else{
+            if(current)lines.push(current.trim());
+            current=word;
+            if(lines.length>=maxLines-1){
+                let t=current;
+                while(t.length>0&&ctx.measureText(t+'…').width>maxW)t=t.slice(0,-1);
+                lines.push(t+'…'); current=''; break;
             }
-            renderList();
         }
     }
+    if(current.trim()&&lines.length<maxLines)lines.push(current.trim());
+    lines.forEach((line,i)=>{ctx.fillText(line,x,y+i*lineHeight);});
+    return lines.length;
+}
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+    ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);
+    ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+    if(fill)ctx.fill();if(stroke)ctx.stroke();
+}
 
-    function updateBadge() {
-        document.getElementById('navDot').classList.toggle('visible', defectsData.length > 0);
-    }
+async function exportPDF() {
+    if (defectsData.length===0){showToast('ไม่มีข้อมูล');return;}
+    document.getElementById('loadingOverlay').classList.add('show');
+    try {
+        await ensureFontsLoaded();
+        const {jsPDF}=window.jspdf;
+        const DPI=150,MM2PX=DPI/25.4,PW_MM=210,PH_MM=297;
+        const PW=Math.round(PW_MM*MM2PX),PH=Math.round(PH_MM*MM2PX);
+        const MARGIN=Math.round(12*MM2PX),COL_GAP=Math.round(5*MM2PX);
+        const COL_W=Math.round((PW_MM-12*2-5)/2*MM2PX);
+        const CARD_H=Math.round(72*MM2PX),IMG_H=Math.round(43*MM2PX),NUM_W=Math.round(8*MM2PX);
+        const TBL_H=CARD_H-IMG_H,ROW_H=Math.round(TBL_H/3);
+        const LABEL_W=Math.round(COL_W*.27),CARD_GAP=Math.round(5*MM2PX);
+        const HEADER_H=Math.round(26*MM2PX),ITEMS_PAGE=6;
+        const THAI_FONT=`'Sarabun','Noto Sans Thai',sans-serif`;
+        const sortedData=[...defectsData].sort((a,b)=>a.id-b.id);
+        const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+        const totalPages=Math.ceil(sortedData.length/ITEMS_PAGE);
+        const now=new Date();
+        const dateStr=now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
 
-    function openExportModal()  { document.getElementById('exportModal').classList.add('open'); }
-    function closeExportModal() { document.getElementById('exportModal').classList.remove('open'); }
-    function closeExportOnOverlay(e) {
-        if (e.target === document.getElementById('exportModal')) closeExportModal();
-    }
+        for(let pageIdx=0;pageIdx<totalPages;pageIdx++){
+            if(pageIdx>0)pdf.addPage();
+            const pageItems=sortedData.slice(pageIdx*ITEMS_PAGE,(pageIdx+1)*ITEMS_PAGE);
+            const canvas=document.createElement('canvas');
+            canvas.width=PW;canvas.height=PH;
+            const ctx=canvas.getContext('2d');
+            ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,PW,PH);
+            ctx.textAlign='center';ctx.fillStyle='#B9B7B4';
+            ctx.font=`${Math.round(6.5*MM2PX*.352778)}px ${THAI_FONT}`;
+            let hy=MARGIN+Math.round(5*MM2PX);
+            ctx.fillText('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP',PW/2,hy);
+            hy+=Math.round(7*MM2PX);ctx.fillStyle='#1A1916';
+            ctx.font=`700 ${Math.round(15*MM2PX*.352778)}px ${THAI_FONT}`;
+            ctx.fillText('Defect Report',PW/2,hy);
+            hy+=Math.round(5*MM2PX);ctx.fillStyle='#9B9B9B';
+            ctx.font=`${Math.round(7.5*MM2PX*.352778)}px ${THAI_FONT}`;
+            ctx.fillText(`ออกรายงานวันที่ ${dateStr}  —  รวม ${sortedData.length} รายการ`,PW/2,hy);
+            hy+=Math.round(4*MM2PX);ctx.fillStyle='#C3C3C3';
+            ctx.font=`${Math.round(6.5*MM2PX*.352778)}px ${THAI_FONT}`;
+            ctx.fillText(`หน้า ${pageIdx+1} / ${totalPages}`,PW/2,hy);
+            const gridTop=MARGIN+HEADER_H;
 
-    // ════════════════════════════════════════════════════════════════
-    // PDF EXPORT (unchanged)
-    // ════════════════════════════════════════════════════════════════
-    async function ensureFontsLoaded() {
-        if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    }
-
-    function loadImageEl(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload  = () => resolve(img);
-            img.onerror = () => reject();
-            img.src = src;
-        });
-    }
-
-    function drawCover(ctx, img, x, y, w, h) {
-        const iR = img.width / img.height;
-        const bR = w / h;
-        let sx, sy, sw, sh;
-        if (iR > bR) { sh = img.height; sw = sh * bR; sx = (img.width - sw) / 2; sy = 0; }
-        else          { sw = img.width;  sh = sw / bR; sx = 0; sy = (img.height - sh) / 2; }
-        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-    }
-
-    function drawWrappedText(ctx, text, x, y, maxW, lineHeight, maxLines) {
-        const words = text.split(/(\s+)/);
-        const lines = [];
-        let current = '';
-        for (const word of words) {
-            const test = current + word;
-            if (ctx.measureText(test).width <= maxW) {
-                current = test;
-            } else {
-                if (current) lines.push(current.trim());
-                current = word;
-                if (lines.length >= maxLines - 1) {
-                    let truncated = current;
-                    while (truncated.length > 0 && ctx.measureText(truncated + '…').width > maxW) {
-                        truncated = truncated.slice(0, -1);
-                    }
-                    lines.push(truncated + '…');
-                    current = '';
-                    break;
-                }
-            }
-        }
-        if (current.trim() && lines.length < maxLines) lines.push(current.trim());
-        lines.forEach((line, i) => { ctx.fillText(line, x, y + i * lineHeight); });
-        return lines.length;
-    }
-
-    async function exportPDF() {
-        closeExportModal();
-        if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-
-        try {
-            await ensureFontsLoaded();
-            const { jsPDF } = window.jspdf;
-            const DPI    = 150;
-            const MM2PX  = DPI / 25.4;
-            const PW_MM  = 210, PH_MM = 297;
-            const PW     = Math.round(PW_MM * MM2PX);
-            const PH     = Math.round(PH_MM * MM2PX);
-            const MARGIN     = Math.round(12  * MM2PX);
-            const COL_GAP    = Math.round(5   * MM2PX);
-            const COL_W      = Math.round((PW_MM - 12*2 - 5) / 2 * MM2PX);
-            const CARD_H     = Math.round(72  * MM2PX);
-            const IMG_H      = Math.round(43  * MM2PX);
-            const NUM_W      = Math.round(8   * MM2PX);
-            const TBL_H      = CARD_H - IMG_H;
-            const ROW_H      = Math.round(TBL_H / 3);
-            const LABEL_W    = Math.round(COL_W * 0.27);
-            const CARD_GAP   = Math.round(5   * MM2PX);
-            const HEADER_H   = Math.round(26  * MM2PX);
-            const ITEMS_PAGE = 6;
-            const THAI_FONT  = `'Sarabun', 'Noto Sans Thai', sans-serif`;
-
-            const sortedData = [...defectsData].sort((a, b) => a.id - b.id);
-
-            const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-            const totalPages = Math.ceil(sortedData.length / ITEMS_PAGE);
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-                if (pageIdx > 0) pdf.addPage();
-                const pageItems = sortedData.slice(pageIdx * ITEMS_PAGE, (pageIdx + 1) * ITEMS_PAGE);
-                const canvas = document.createElement('canvas');
-                canvas.width  = PW;
-                canvas.height = PH;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, PW, PH);
-
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#B9B7B4';
-                ctx.font      = `${Math.round(6.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
-                let hy = MARGIN + Math.round(5 * MM2PX);
-                ctx.fillText('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP', PW / 2, hy);
-                hy += Math.round(7 * MM2PX);
-                ctx.fillStyle = '#1A1916';
-                ctx.font      = `700 ${Math.round(15 * MM2PX * 0.352778)}px ${THAI_FONT}`;
-                ctx.fillText('Defect Report', PW / 2, hy);
-                hy += Math.round(5 * MM2PX);
-                ctx.fillStyle = '#9B9B9B';
-                ctx.font      = `${Math.round(7.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
-                ctx.fillText(`ออกรายงานวันที่ ${dateStr}  —  รวม ${sortedData.length} รายการ`, PW / 2, hy);
-                hy += Math.round(4 * MM2PX);
-                ctx.fillStyle = '#C3C3C3';
-                ctx.font      = `${Math.round(6.5 * MM2PX * 0.352778)}px ${THAI_FONT}`;
-                ctx.fillText(`หน้า ${pageIdx + 1} / ${totalPages}`, PW / 2, hy);
-
-                const gridTop = MARGIN + HEADER_H;
-
-                for (let i = 0; i < pageItems.length; i++) {
-                    const d   = pageItems[i];
-                    const col = i % 2;
-                    const row = Math.floor(i / 2);
-                    const cx  = MARGIN + col * (COL_W + COL_GAP);
-                    const cy  = gridTop + row * (CARD_H + CARD_GAP);
-
-                    ctx.strokeStyle = '#D7D4CF';
-                    ctx.lineWidth   = 1;
-                    roundRect(ctx, cx, cy, COL_W, CARD_H, 6, false, true);
-
-                    ctx.fillStyle = '#1A1916';
-                    ctx.fillRect(cx, cy, NUM_W, IMG_H);
-
-                    ctx.fillStyle    = '#FFFFFF';
-                    ctx.font         = `700 ${Math.round(9 * MM2PX * 0.352778)}px ${THAI_FONT}`;
-                    ctx.textAlign    = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(String(d.id), cx + NUM_W / 2, cy + IMG_H / 2);
-
-                    const imgX = cx + NUM_W;
-                    const imgW = COL_W - NUM_W;
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(imgX, cy, imgW, IMG_H);
-                    ctx.clip();
-                    if (d.image) {
-                        try {
-                            const img = await loadImageEl(d.image);
-                            drawCover(ctx, img, imgX, cy, imgW, IMG_H);
-                        } catch {
-                            ctx.fillStyle = '#EBEBEB';
-                            ctx.fillRect(imgX, cy, imgW, IMG_H);
-                        }
-                    } else {
-                        ctx.fillStyle = '#EBEBEB';
-                        ctx.fillRect(imgX, cy, imgW, IMG_H);
-                    }
-                    ctx.restore();
-
-                    ctx.strokeStyle = '#D7D4CF';
-                    ctx.lineWidth   = 0.8;
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy + IMG_H);
-                    ctx.lineTo(cx + COL_W, cy + IMG_H);
-                    ctx.stroke();
-
-                    const fields = [
-                        { label: 'ตำแหน่ง', value: d.location },
-                        { label: 'ทีม',     value: d.team },
-                        { label: 'รายการ',  value: d.details + (d.remarks ? ' / ' + d.remarks : '') }
-                    ];
-                    const labelFontSize = Math.round(5.5 * MM2PX * 0.352778);
-                    const valueFontSize = Math.round(6.8 * MM2PX * 0.352778);
-
-                    fields.forEach((f, fi) => {
-                        const ry = cy + IMG_H + fi * ROW_H;
-                        if (fi > 0) {
-                            ctx.strokeStyle = '#E4E1DC';
-                            ctx.lineWidth   = 0.6;
-                            ctx.beginPath();
-                            ctx.moveTo(cx, ry);
-                            ctx.lineTo(cx + COL_W, ry);
-                            ctx.stroke();
-                        }
-                        ctx.strokeStyle = '#E4E1DC';
-                        ctx.lineWidth   = 0.6;
-                        ctx.beginPath();
-                        ctx.moveTo(cx + LABEL_W, ry);
-                        ctx.lineTo(cx + LABEL_W, ry + ROW_H);
-                        ctx.stroke();
-                        ctx.fillStyle = '#F8FAFF';
-                        ctx.fillRect(cx + LABEL_W + 1, ry + 1, COL_W - LABEL_W - 2, ROW_H - 2);
-                        ctx.fillStyle    = '#A5A29D';
-                        ctx.font         = `${labelFontSize}px ${THAI_FONT}`;
-                        ctx.textAlign    = 'left';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(f.label, cx + 3, ry + ROW_H / 2);
-                        ctx.fillStyle = '#1A1916';
-                        ctx.font      = `${valueFontSize}px ${THAI_FONT}`;
-                        const vx    = cx + LABEL_W + 4;
-                        const maxVW = COL_W - LABEL_W - 8;
-                        if (fi === 2) {
-                            const lh = Math.round(3.5 * MM2PX * 0.352778);
-                            ctx.textBaseline = 'top';
-                            drawWrappedText(ctx, f.value, vx, ry + 3, maxVW, lh, 2);
-                        } else {
-                            ctx.textBaseline = 'middle';
-                            let display = f.value;
-                            while (display.length > 1 && ctx.measureText(display).width > maxVW) {
-                                display = display.slice(0, -1);
-                            }
-                            if (display !== f.value) display = display.slice(0, -1) + '…';
-                            ctx.fillText(display, vx, ry + ROW_H / 2);
-                        }
-                    });
-                }
-
-                const imgData = canvas.toDataURL('image/jpeg', 0.92);
-                pdf.addImage(imgData, 'JPEG', 0, 0, PW_MM, PH_MM);
-            }
-
-            const pdfBlob = pdf.output('blob');
-            const pdfUrl  = URL.createObjectURL(pdfBlob);
-            const fileName = `Defect_Report_${Date.now()}.pdf`;
-
-            document.getElementById('loadingOverlay').classList.remove('show');
-            openPdfPreview(pdfUrl, fileName, pdf);
-
-        } catch (err) {
-            console.error('PDF export error:', err);
-            document.getElementById('loadingOverlay').classList.remove('show');
-            showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
-        }
-    }
-
-    let _currentPdfObj  = null;
-    let _currentPdfName = '';
-    let _currentPdfUrl  = null;
-
-    function openPdfPreview(url, fileName, pdfObj) {
-        _currentPdfUrl  = url;
-        _currentPdfName = fileName;
-        _currentPdfObj  = pdfObj;
-        document.getElementById('pdfPreviewTitle').textContent = fileName;
-        document.getElementById('pdfPreviewFrame').src = url;
-        document.getElementById('pdfPreviewModal').classList.add('open');
-        showToast('✓ สร้าง PDF สำเร็จ');
-    }
-
-    function closePdfPreview() {
-        document.getElementById('pdfPreviewModal').classList.remove('open');
-        document.getElementById('pdfPreviewFrame').src = '';
-        if (_currentPdfUrl) { URL.revokeObjectURL(_currentPdfUrl); _currentPdfUrl = null; }
-    }
-
-    function downloadCurrentPdf() {
-        if (_currentPdfObj) {
-            _currentPdfObj.save(_currentPdfName);
-            showToast('✓ ดาวน์โหลด PDF สำเร็จ');
-        }
-    }
-
-    function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.arcTo(x + w, y, x + w, y + r, r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-        ctx.lineTo(x + r, y + h);
-        ctx.arcTo(x, y + h, x, y + h - r, r);
-        ctx.lineTo(x, y + r);
-        ctx.arcTo(x, y, x + r, y, r);
-        ctx.closePath();
-        if (fill)   ctx.fill();
-        if (stroke) ctx.stroke();
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    // EXCEL EXPORT — FIXED VERSION
-    // ════════════════════════════════════════════════════════════════
-
-    // Convert any image dataURL → PNG base64 (ExcelJS-safe, full quality)
-    function convertToPng(dataURL) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                const c = document.createElement('canvas');
-                c.width  = img.width;
-                c.height = img.height;
-                c.getContext('2d').drawImage(img, 0, 0);
-                resolve(c.toDataURL('image/png').split('base64,')[1]);
-            };
-            img.onerror = () => resolve(null);
-            img.src = dataURL;
-        });
-    }
-
-    async function exportExcel() {
-        closeExportModal();
-        if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-
-        try {
-            const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'KS Construction';
-            workbook.created = new Date();
-
-            const sheet = workbook.addWorksheet('รายงาน Defect', {
-                views: [{ showGridLines: false }],
-                pageSetup: {
-                    paperSize: 9, orientation: 'landscape',
-                    fitToPage: true, fitToWidth: 1, fitToHeight: 0
-                }
-            });
-
-            // Row height in points (1 pt ≈ 1.333px). 150pt ≈ 200px
-            const ROW_H_PT  = 150;
-
-            sheet.columns = [
-                { header: 'ลำดับ',            key: 'id',       width: 7  },
-                { header: 'รูปภาพ Defect',    key: 'image',    width: 34 },
-                { header: 'Zone / ตำแหน่ง',  key: 'location', width: 28 },
-                { header: 'หมวดงาน / ทีม',   key: 'team',     width: 22 },
-                { header: 'รายการที่ต้องแก้', key: 'details',  width: 45 },
-                { header: 'หมายเหตุ',         key: 'remarks',  width: 25 },
-                { header: 'วันที่บันทึก',     key: 'date',     width: 22 }
-            ];
-
-            // Style header row
-            const headerRow = sheet.getRow(1);
-            headerRow.height = 32;
-            headerRow.eachCell({ includeEmpty: true }, (cell) => {
-                cell.font      = { name: 'Tahoma', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1916' } };
-                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-                cell.border    = { bottom: { style: 'thin', color: { argb: 'FF444444' } } };
-            });
-
-            const sortedData = [...defectsData].sort((a, b) => a.id - b.id);
-
-            for (let index = 0; index < sortedData.length; index++) {
-                const d        = sortedData[index];
-                const rowIndex = index + 2;   // 1-based; row 1 = header
-                const row      = sheet.getRow(rowIndex);
-                row.height = ROW_H_PT;
-
-                // Text cells
-                row.getCell('A').value = d.id;
-                // Column B (image) — leave value empty, image embedded below
-                row.getCell('C').value = d.location;
-                row.getCell('D').value = d.team;
-                row.getCell('E').value = d.details;
-                row.getCell('F').value = d.remarks || '-';
-                row.getCell('G').value = new Date(d.timestamp).toLocaleString('th-TH', {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
+            for(let i=0;i<pageItems.length;i++){
+                const d=pageItems[i],col=i%2,row=Math.floor(i/2);
+                const cx=MARGIN+col*(COL_W+COL_GAP),cy=gridTop+row*(CARD_H+CARD_GAP);
+                ctx.strokeStyle='#D7D4CF';ctx.lineWidth=1;
+                roundRect(ctx,cx,cy,COL_W,CARD_H,6,false,true);
+                ctx.fillStyle='#1A1916';ctx.fillRect(cx,cy,NUM_W,IMG_H);
+                ctx.fillStyle='#FFFFFF';ctx.font=`700 ${Math.round(9*MM2PX*.352778)}px ${THAI_FONT}`;
+                ctx.textAlign='center';ctx.textBaseline='middle';
+                ctx.fillText(String(d.id),cx+NUM_W/2,cy+IMG_H/2);
+                const imgX=cx+NUM_W,imgW=COL_W-NUM_W;
+                ctx.save();ctx.beginPath();ctx.rect(imgX,cy,imgW,IMG_H);ctx.clip();
+                if(d.image){try{const img=await loadImageEl(d.image);drawCover(ctx,img,imgX,cy,imgW,IMG_H);}
+                catch{ctx.fillStyle='#EBEBEB';ctx.fillRect(imgX,cy,imgW,IMG_H);}}
+                else{ctx.fillStyle='#EBEBEB';ctx.fillRect(imgX,cy,imgW,IMG_H);}
+                ctx.restore();
+                ctx.strokeStyle='#D7D4CF';ctx.lineWidth=.8;
+                ctx.beginPath();ctx.moveTo(cx,cy+IMG_H);ctx.lineTo(cx+COL_W,cy+IMG_H);ctx.stroke();
+                const fields=[{label:'ตำแหน่ง',value:d.location},{label:'ทีม',value:d.team},
+                    {label:'รายการ',value:d.details+(d.remarks?' / '+d.remarks:'')}];
+                const lfs=Math.round(5.5*MM2PX*.352778),vfs=Math.round(6.8*MM2PX*.352778);
+                fields.forEach((f,fi)=>{
+                    const ry=cy+IMG_H+fi*ROW_H;
+                    if(fi>0){ctx.strokeStyle='#E4E1DC';ctx.lineWidth=.6;ctx.beginPath();
+                        ctx.moveTo(cx,ry);ctx.lineTo(cx+COL_W,ry);ctx.stroke();}
+                    ctx.strokeStyle='#E4E1DC';ctx.lineWidth=.6;ctx.beginPath();
+                    ctx.moveTo(cx+LABEL_W,ry);ctx.lineTo(cx+LABEL_W,ry+ROW_H);ctx.stroke();
+                    ctx.fillStyle='#F8FAFF';ctx.fillRect(cx+LABEL_W+1,ry+1,COL_W-LABEL_W-2,ROW_H-2);
+                    ctx.fillStyle='#A5A29D';ctx.font=`${lfs}px ${THAI_FONT}`;
+                    ctx.textAlign='left';ctx.textBaseline='middle';
+                    ctx.fillText(f.label,cx+3,ry+ROW_H/2);
+                    ctx.fillStyle='#1A1916';ctx.font=`${vfs}px ${THAI_FONT}`;
+                    const vx=cx+LABEL_W+4,maxVW=COL_W-LABEL_W-8;
+                    if(fi===2){const lh=Math.round(3.5*MM2PX*.352778);ctx.textBaseline='top';
+                        drawWrappedText(ctx,f.value,vx,ry+3,maxVW,lh,2);}
+                    else{ctx.textBaseline='middle';let disp=f.value;
+                        while(disp.length>1&&ctx.measureText(disp).width>maxVW)disp=disp.slice(0,-1);
+                        if(disp!==f.value)disp=disp.slice(0,-1)+'…';ctx.fillText(disp,vx,ry+ROW_H/2);}
                 });
-
-                // Style text cells
-                ['A','C','D','E','F','G'].forEach(col => {
-                    const cell = row.getCell(col);
-                    cell.font      = { name: 'Tahoma', size: 11 };
-                    cell.alignment = {
-                        vertical:   'middle',
-                        horizontal: (col === 'A' || col === 'G') ? 'center' : 'left',
-                        wrapText:   true
-                    };
-                });
-
-                // Alternating row background
-                const rowBg = index % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9';
-                ['A','B','C','D','E','F','G'].forEach(col => {
-                    const cell = row.getCell(col);
-                    cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
-                    cell.border = {
-                        top:    { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                        left:   { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                        bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                        right:  { style: 'thin', color: { argb: 'FFE0E0E0' } }
-                    };
-                });
-
-                // ── IMAGE EMBED (fixed) ──────────────────────────────
-                if (d.image) {
-                    try {
-                        // Convert to PNG (avoids 'jpg' / 'jpeg' extension bug in ExcelJS)
-                        const pngBase64 = await convertToPng(d.image);
-                        if (pngBase64) {
-                            const imageId = workbook.addImage({
-                                base64:    pngBase64,
-                                extension: 'png'
-                            });
-
-                            // Fill entire cell B — tl/br are 0-based col/row
-                            sheet.addImage(imageId, {
-                                tl: { col: 1, row: rowIndex - 1 },
-                                br: { col: 2, row: rowIndex     },
-                                editAs: 'oneCell'
-                            });
-                        }
-                    } catch (imgErr) {
-                        console.warn('Image embed failed for DEF', d.id, imgErr);
-                    }
-                }
-                // ────────────────────────────────────────────────────
             }
-
-            // Freeze header row
-            sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, showGridLines: false }];
-
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob   = new Blob([buffer], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            saveAs(blob, `Defect_Report_${Date.now()}.xlsx`);
-            document.getElementById('loadingOverlay').classList.remove('show');
-            showToast('✓ ดาวน์โหลด Excel สำเร็จ');
-
-        } catch (error) {
-            console.error('Excel export error:', error);
-            document.getElementById('loadingOverlay').classList.remove('show');
-            showToast('❌ เกิดข้อผิดพลาดในการสร้าง Excel');
+            const imgData=canvas.toDataURL('image/jpeg',.92);
+            pdf.addImage(imgData,'JPEG',0,0,PW_MM,PH_MM);
         }
+        const pdfBlob=pdf.output('blob');
+        const pdfUrl=URL.createObjectURL(pdfBlob);
+        const fileName=`Defect_Report_${Date.now()}.pdf`;
+        document.getElementById('loadingOverlay').classList.remove('show');
+        openPdfPreview(pdfUrl,fileName,pdf);
+    } catch(err){
+        console.error(err);
+        document.getElementById('loadingOverlay').classList.remove('show');
+        showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
     }
+}
 
-    // ════════════════════════════════════════════════════════════════
-    // EDIT MODAL
-    // ════════════════════════════════════════════════════════════════
-    let editingId        = null;
-    let editImageDataURL = null;
-    let editSelectedTeam = null;
-    let editIsCustomTeam = false;
+let _currentPdfObj=null,_currentPdfName='',_currentPdfUrl=null;
+function openPdfPreview(url,fileName,pdfObj){
+    _currentPdfUrl=url;_currentPdfName=fileName;_currentPdfObj=pdfObj;
+    document.getElementById('pdfPreviewTitle').textContent=fileName;
+    document.getElementById('pdfPreviewFrame').src=url;
+    document.getElementById('pdfPreviewModal').classList.add('open');
+    showToast('✓ สร้าง PDF สำเร็จ');
+}
+function closePdfPreview(){
+    document.getElementById('pdfPreviewModal').classList.remove('open');
+    document.getElementById('pdfPreviewFrame').src='';
+    if(_currentPdfUrl){URL.revokeObjectURL(_currentPdfUrl);_currentPdfUrl=null;}
+}
+function downloadCurrentPdf(){
+    if(_currentPdfObj){_currentPdfObj.save(_currentPdfName);showToast('✓ ดาวน์โหลด PDF สำเร็จ');}
+}
 
-    function checkEditDuplicateId() {
-        const val  = parseInt(document.getElementById('editDefectNumber').value);
-        const warn = document.getElementById('editIdWarning');
-        if (val && defectsData.some(d => d.id === val && d.id !== editingId)) {
-            warn.classList.add('show');
-        } else {
-            warn.classList.remove('show');
-        }
-    }
-
-    function openEditModal(id) {
-        const d = defectsData.find(x => x.id === id);
-        if (!d) return;
-
-        editingId        = id;
-        editImageDataURL = d.image;
-
-        document.getElementById('editModalTitle').textContent    = `DEF — ${String(id).padStart(3,'0')}`;
-        document.getElementById('editDefectNumber').value        = d.id;
-        document.getElementById('editLocation').value            = d.location;
-        document.getElementById('editDetails').value             = d.details;
-        document.getElementById('editRemarks').value             = d.remarks || '';
-        document.getElementById('editCustomTeamInput').value     = '';
-        document.getElementById('editIdWarning').classList.remove('show');
-
-        const prev = document.getElementById('editImagePreview');
-        const ph   = document.getElementById('editUploadPlaceholder');
-        const rmv  = document.getElementById('editRemoveImgBtn');
-        const area = document.getElementById('editUploadArea');
-        if (d.image) {
-            prev.src = d.image; prev.style.display = 'block';
-            ph.style.display = 'none'; rmv.style.display = 'flex';
-            area.classList.add('has-image');
-        } else {
-            prev.src = ''; prev.style.display = 'none';
-            ph.style.display = 'flex'; rmv.style.display = 'none';
-            area.classList.remove('has-image');
-        }
-
-        document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
-        document.getElementById('editCustomTeamWrap').classList.remove('open');
-        editIsCustomTeam = false;
-
-        const presetValues = ['ช่างทาสี','ช่างปูน/โครงสร้าง','ช่างไฟฟ้า','ช่างประปา','ช่างฝ้า/เพดาน','ช่างกระเบื้อง'];
-        if (presetValues.includes(d.team)) {
-            editSelectedTeam = d.team;
-            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
-                const match = t.getAttribute('onclick').match(/'([^']+)'/);
-                if (match && match[1] === d.team) t.classList.add('selected');
-            });
-        } else {
-            editIsCustomTeam = true;
-            editSelectedTeam = null;
-            document.getElementById('editCustomTeamInput').value = d.team;
-            document.getElementById('editCustomTeamWrap').classList.add('open');
-            document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
-                if (t.textContent.trim() === 'อื่นๆ ...') t.classList.add('selected');
-            });
-        }
-
-        document.getElementById('editModal').classList.add('open');
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.remove('open');
-        editingId = null;
-    }
-
-    function closeEditOnOverlay(e) {
-        if (e.target === document.getElementById('editModal')) closeEditModal();
-    }
-
-    function selectEditTeam(el, value) {
-        document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
-        el.classList.add('selected');
-        const wrap = document.getElementById('editCustomTeamWrap');
-        if (value === '__other__') {
-            editIsCustomTeam = true;
-            editSelectedTeam = null;
-            wrap.classList.add('open');
-            setTimeout(() => document.getElementById('editCustomTeamInput').focus(), 50);
-        } else {
-            editIsCustomTeam = false;
-            editSelectedTeam = value;
-            wrap.classList.remove('open');
-        }
-    }
-
-    function getEditTeam() {
-        if (editIsCustomTeam) return document.getElementById('editCustomTeamInput').value.trim();
-        return editSelectedTeam;
-    }
-
-    function editPreviewImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            editImageDataURL = e.target.result;
-            const prev = document.getElementById('editImagePreview');
-            prev.src = editImageDataURL; prev.style.display = 'block';
-            document.getElementById('editUploadPlaceholder').style.display = 'none';
-            document.getElementById('editRemoveImgBtn').style.display = 'flex';
-            document.getElementById('editUploadArea').classList.add('has-image');
+// ════════════════════════════════════════════════════════════════
+// EXCEL EXPORT
+// ════════════════════════════════════════════════════════════════
+function convertToPng(dataURL){
+    return new Promise(resolve=>{
+        const img=new Image();
+        img.onload=()=>{
+            const c=document.createElement('canvas');
+            c.width=img.width;c.height=img.height;
+            c.getContext('2d').drawImage(img,0,0);
+            resolve(c.toDataURL('image/png').split('base64,')[1]);
         };
-        reader.readAsDataURL(file);
-    }
+        img.onerror=()=>resolve(null);
+        img.src=dataURL;
+    });
+}
 
-    function clearEditImage(e) {
-        e.stopPropagation();
-        editImageDataURL = null;
-        document.getElementById('editPhotoInputCamera').value  = '';
-        document.getElementById('editPhotoInputGallery').value = '';
-        document.getElementById('editImagePreview').style.display = 'none';
-        document.getElementById('editImagePreview').src = '';
-        document.getElementById('editUploadPlaceholder').style.display = 'flex';
-        document.getElementById('editRemoveImgBtn').style.display = 'none';
-        document.getElementById('editUploadArea').classList.remove('has-image');
-    }
-
-    function saveEdit() {
-        const newIdVal = document.getElementById('editDefectNumber').value.trim();
-        const location = document.getElementById('editLocation').value.trim();
-        const details  = document.getElementById('editDetails').value.trim();
-        const team     = getEditTeam();
-        const remarks  = document.getElementById('editRemarks').value.trim();
-
-        if (!editImageDataURL) { showToast('⚠ กรุณาเลือกรูปภาพ'); return; }
-        if (!newIdVal)         { showToast('⚠ กรุณากรอกเลขที่ Defect'); return; }
-
-        const newId = parseInt(newIdVal);
-        if (isNaN(newId) || newId < 1) { showToast('⚠ เลขที่ต้องเป็นตัวเลขบวก'); return; }
-        if (newId !== editingId && defectsData.some(d => d.id === newId)) {
-            showToast('⚠ เลขที่ ' + newId + ' มีอยู่แล้ว'); return;
+async function exportExcel(){
+    if(defectsData.length===0){showToast('ไม่มีข้อมูล');return;}
+    document.getElementById('loadingOverlay').classList.add('show');
+    try{
+        const workbook=new ExcelJS.Workbook();
+        workbook.creator='KS Construction';workbook.created=new Date();
+        const sheet=workbook.addWorksheet('รายงาน Defect',{
+            views:[{showGridLines:false}],
+            pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0}
+        });
+        const ROW_H_PT=150;
+        sheet.columns=[
+            {header:'ลำดับ',key:'id',width:7},
+            {header:'รูปภาพ Defect',key:'image',width:34},
+            {header:'Zone / ตำแหน่ง',key:'location',width:28},
+            {header:'หมวดงาน / ทีม',key:'team',width:22},
+            {header:'รายการที่ต้องแก้',key:'details',width:45},
+            {header:'หมายเหตุ',key:'remarks',width:25},
+            {header:'วันที่บันทึก',key:'date',width:22}
+        ];
+        const headerRow=sheet.getRow(1);headerRow.height=32;
+        headerRow.eachCell({includeEmpty:true},cell=>{
+            cell.font={name:'Tahoma',size:11,bold:true,color:{argb:'FFFFFFFF'}};
+            cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A1916'}};
+            cell.alignment={vertical:'middle',horizontal:'center',wrapText:true};
+            cell.border={bottom:{style:'thin',color:{argb:'FF444444'}}};
+        });
+        const sortedData=[...defectsData].sort((a,b)=>a.id-b.id);
+        for(let index=0;index<sortedData.length;index++){
+            const d=sortedData[index],rowIndex=index+2;
+            const row=sheet.getRow(rowIndex);row.height=ROW_H_PT;
+            row.getCell('A').value=d.id;
+            row.getCell('C').value=d.location;
+            row.getCell('D').value=d.team;
+            row.getCell('E').value=d.details;
+            row.getCell('F').value=d.remarks||'-';
+            row.getCell('G').value=new Date(d.timestamp).toLocaleString('th-TH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+            ['A','C','D','E','F','G'].forEach(col=>{
+                const cell=row.getCell(col);
+                cell.font={name:'Tahoma',size:11};
+                cell.alignment={vertical:'middle',horizontal:(col==='A'||col==='G')?'center':'left',wrapText:true};
+            });
+            const rowBg=index%2===0?'FFFFFFFF':'FFF9F9F9';
+            ['A','B','C','D','E','F','G'].forEach(col=>{
+                const cell=row.getCell(col);
+                cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};
+                cell.border={top:{style:'thin',color:{argb:'FFE0E0E0'}},left:{style:'thin',color:{argb:'FFE0E0E0'}},
+                    bottom:{style:'thin',color:{argb:'FFE0E0E0'}},right:{style:'thin',color:{argb:'FFE0E0E0'}}};
+            });
+            if(d.image){
+                try{
+                    const pngBase64=await convertToPng(d.image);
+                    if(pngBase64){
+                        const imageId=workbook.addImage({base64:pngBase64,extension:'png'});
+                        sheet.addImage(imageId,{tl:{col:1,row:rowIndex-1},br:{col:2,row:rowIndex},editAs:'oneCell'});
+                    }
+                }catch(imgErr){console.warn('Image embed failed for DEF',d.id,imgErr);}
+            }
         }
-
-        if (!location) { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
-        if (!team)     { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
-        if (!details)  { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
-
-        const idx = defectsData.findIndex(x => x.id === editingId);
-        if (idx !== -1) {
-            defectsData[idx] = { ...defectsData[idx], id: newId, image: editImageDataURL, location, details, team, remarks };
-        }
-
-        defectsData.sort((a, b) => a.id - b.id);
-        closeEditModal();
-        renderList();
-        showToast('✓ แก้ไขสำเร็จ');
+        sheet.views=[{state:'frozen',xSplit:0,ySplit:1,showGridLines:false}];
+        const buffer=await workbook.xlsx.writeBuffer();
+        const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        saveAs(blob,`Defect_Report_${Date.now()}.xlsx`);
+        document.getElementById('loadingOverlay').classList.remove('show');
+        showToast('✓ ดาวน์โหลด Excel สำเร็จ');
+    }catch(error){
+        console.error(error);
+        document.getElementById('loadingOverlay').classList.remove('show');
+        showToast('❌ เกิดข้อผิดพลาดในการสร้าง Excel');
     }
+}
 
-    // ════════════════════════════════════════════════════════════════
-    // DELETE
-    // ════════════════════════════════════════════════════════════════
-    let deletingId = null;
-
-    function openConfirmModal(id) {
-        deletingId = id;
-        document.getElementById('confirmModal').classList.add('open');
+// ════════════════════════════════════════════════════════════════
+// EDIT MODAL
+// ════════════════════════════════════════════════════════════════
+function checkEditDuplicateId(){
+    const val=parseInt(document.getElementById('editDefectNumber').value);
+    const warn=document.getElementById('editIdWarning');
+    warn.classList.toggle('show',val&&defectsData.some(d=>d.id===val&&d.id!==editingId));
+}
+function openEditModal(id){
+    const d=defectsData.find(x=>x.id===id); if(!d)return;
+    editingId=id; editImageDataURL=d.image;
+    document.getElementById('editModalTitle').textContent=`DEF — ${String(id).padStart(3,'0')}`;
+    document.getElementById('editDefectNumber').value=d.id;
+    document.getElementById('editLocation').value=d.location;
+    document.getElementById('editDetails').value=d.details;
+    document.getElementById('editRemarks').value=d.remarks||'';
+    document.getElementById('editCustomTeamInput').value='';
+    document.getElementById('editIdWarning').classList.remove('show');
+    const prev=document.getElementById('editImagePreview'),ph=document.getElementById('editUploadPlaceholder');
+    const rmv=document.getElementById('editRemoveImgBtn'),area=document.getElementById('editUploadArea');
+    if(d.image){prev.src=d.image;prev.style.display='block';ph.style.display='none';
+        rmv.style.display='flex';area.classList.add('has-image');}
+    else{prev.src='';prev.style.display='none';ph.style.display='flex';
+        rmv.style.display='none';area.classList.remove('has-image');}
+    document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>t.classList.remove('selected'));
+    document.getElementById('editCustomTeamWrap').classList.remove('open');
+    editIsCustomTeam=false;
+    const presets=['ช่างทาสี','ช่างปูน/โครงสร้าง','ช่างไฟฟ้า','ช่างประปา','ช่างฝ้า/เพดาน','ช่างกระเบื้อง'];
+    if(presets.includes(d.team)){
+        editSelectedTeam=d.team;
+        document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>{
+            const m=t.getAttribute('onclick').match(/'([^']+)'/);
+            if(m&&m[1]===d.team)t.classList.add('selected');
+        });
+    }else{
+        editIsCustomTeam=true;editSelectedTeam=null;
+        document.getElementById('editCustomTeamInput').value=d.team;
+        document.getElementById('editCustomTeamWrap').classList.add('open');
+        document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>{
+            if(t.textContent.trim()==='อื่นๆ ...')t.classList.add('selected');
+        });
     }
+    document.getElementById('editModal').classList.add('open');
+}
+function closeEditModal(){document.getElementById('editModal').classList.remove('open');editingId=null;}
+function closeEditOnOverlay(e){if(e.target===document.getElementById('editModal'))closeEditModal();}
+function selectEditTeam(el,value){
+    document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>t.classList.remove('selected'));
+    el.classList.add('selected');
+    if(value==='__other__'){editIsCustomTeam=true;editSelectedTeam=null;
+        document.getElementById('editCustomTeamWrap').classList.add('open');
+        setTimeout(()=>document.getElementById('editCustomTeamInput').focus(),50);}
+    else{editIsCustomTeam=false;editSelectedTeam=value;document.getElementById('editCustomTeamWrap').classList.remove('open');}
+}
+function getEditTeam(){return editIsCustomTeam?document.getElementById('editCustomTeamInput').value.trim():editSelectedTeam;}
+function editPreviewImage(event){
+    const file=event.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        editImageDataURL=e.target.result;
+        const prev=document.getElementById('editImagePreview');
+        prev.src=editImageDataURL;prev.style.display='block';
+        document.getElementById('editUploadPlaceholder').style.display='none';
+        document.getElementById('editRemoveImgBtn').style.display='flex';
+        document.getElementById('editUploadArea').classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+}
+function clearEditImage(e){
+    e.stopPropagation();editImageDataURL=null;
+    ['editPhotoInputCamera','editPhotoInputGallery'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('editImagePreview').style.display='none';
+    document.getElementById('editImagePreview').src='';
+    document.getElementById('editUploadPlaceholder').style.display='flex';
+    document.getElementById('editRemoveImgBtn').style.display='none';
+    document.getElementById('editUploadArea').classList.remove('has-image');
+}
+async function saveEdit(){
+    const newIdVal=document.getElementById('editDefectNumber').value.trim();
+    const location=document.getElementById('editLocation').value.trim();
+    const details=document.getElementById('editDetails').value.trim();
+    const team=getEditTeam();
+    const remarks=document.getElementById('editRemarks').value.trim();
+    if(!editImageDataURL){showToast('⚠ กรุณาเลือกรูปภาพ');return;}
+    if(!newIdVal){showToast('⚠ กรุณากรอกเลขที่ Defect');return;}
+    const newId=parseInt(newIdVal);
+    if(isNaN(newId)||newId<1){showToast('⚠ เลขที่ต้องเป็นตัวเลขบวก');return;}
+    if(newId!==editingId&&defectsData.some(d=>d.id===newId)){showToast('⚠ เลขที่ '+newId+' มีอยู่แล้ว');return;}
+    if(!location){showToast('⚠ กรุณากรอก Zone / ตำแหน่ง');return;}
+    if(!team){showToast('⚠ กรุณาเลือกทีมแก้ไข');return;}
+    if(!details){showToast('⚠ กรุณากรอกรายการที่ต้องแก้');return;}
 
-    function closeConfirmModal() {
-        document.getElementById('confirmModal').classList.remove('open');
-        deletingId = null;
+    setSyncState('syncing','กำลังบันทึก...');
+    const idx=defectsData.findIndex(x=>x.id===editingId);
+    const oldId=editingId;
+    if(idx!==-1){
+        defectsData[idx]={...defectsData[idx],id:newId,image:editImageDataURL,location,details,team,remarks};
     }
+    defectsData.sort((a,b)=>a.id-b.id);
 
-    function confirmDelete() {
-        if (deletingId === null) return;
-        defectsData = defectsData.filter(x => x.id !== deletingId);
-        closeConfirmModal();
-        updateBadge();
-        renderList();
-        showToast('🗑 ลบรายการแล้ว');
-    }
+    // If ID changed, delete old key
+    if(newId!==oldId) await storageDelete(STORAGE_PREFIX+oldId);
+    await saveOneToStorage(defectsData.find(x=>x.id===newId));
+    _lastIndexStr=JSON.stringify(defectsData.map(x=>x.id));
+    setSyncState('ok','LIVE');
 
-    // ── Toast ──
-    function showToast(msg) {
-        const toast = document.getElementById('toast');
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2800);
-    }
+    closeEditModal();
+    updateUI();
+    showToast('✓ แก้ไขสำเร็จ');
+}
 
-    // ── Init ──
-    renderList();
+// ── DELETE ──
+function openConfirmModal(id){deletingId=id;document.getElementById('confirmModal').classList.add('open');}
+function closeConfirmModal(){document.getElementById('confirmModal').classList.remove('open');deletingId=null;}
+async function confirmDelete(){
+    if(deletingId===null)return;
+    setSyncState('syncing','กำลังลบ...');
+    const id=deletingId;
+    await deleteOneFromStorage(id);
+    defectsData=defectsData.filter(x=>x.id!==id);
+    _lastIndexStr=JSON.stringify(defectsData.map(x=>x.id));
+    setSyncState('ok','LIVE');
+    closeConfirmModal();
+    updateUI();
+    showToast('🗑 ลบรายการแล้ว');
+}
+
+// ── TOAST ──
+function showToast(msg){
+    const toast=document.getElementById('toast');
+    toast.textContent=msg;toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+(async function init(){
+    await loadAllFromStorage();
+    updateUI();
+    startPolling();
+})();
 </script>
 
 </body>
