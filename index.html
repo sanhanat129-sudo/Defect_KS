@@ -2,759 +2,959 @@
 
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Defect Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Defect Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <style>
 :root {
-    --bg:#FFFFFF;--surface:#FFFFFF;--surface-2:#F5F5F5;--border:#E8E8E8;
-    --text-primary:#1A1916;--text-secondary:#6B6860;--text-muted:#A8A49D;
-    --accent:#D4521A;--accent-light:#FBF0EB;--accent-2:#2A5F4F;--accent-2-light:#EBF5F2;
-    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans Thai',sans-serif;
+    --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F5F5F5;
+    --border: #E8E8E8; --text-primary: #1A1916; --text-secondary: #6B6860;
+    --text-muted: #A8A49D; --accent: #D4521A; --accent-light: #FBF0EB;
+    --accent-2: #2A5F4F; --accent-2-light: #EBF5F2;
+    --sync-ok: #2A5F4F; --sync-err: #C0392B; --sync-pending: #D4521A;
+    --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans Thai', sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:var(--sans);background:var(--bg);color:var(--text-primary);
-     height:100svh;display:flex;justify-content:center;align-items:center;overflow:hidden}
-.app{width:100%;max-width:430px;height:100%;max-height:100svh;background:var(--bg);
-     display:flex;flex-direction:column;position:relative}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text-primary); height: 100svh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+.app { width: 100%; max-width: 430px; height: 100%; max-height: 100svh; background: var(--bg); display: flex; flex-direction: column; position: relative; }
 
 /* ── HEADER ── */
-.header{background:var(--bg);padding:20px 24px 16px;display:flex;align-items:flex-end;
-        justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
-.header-left .eyebrow{font-family:var(--mono);font-size:7.5px;letter-spacing:.10em;
-    text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
-.header-left h1{font-size:22px;font-weight:600;letter-spacing:-.03em;color:var(--text-primary);line-height:1}
-.header-right{display:flex;align-items:center;gap:8px}
+.header { background: var(–bg); padding: 16px 20px 12px; display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(–border); flex-shrink: 0; }
+.header-left .eyebrow { font-family: var(–mono); font-size: 7px; letter-spacing: 0.10em; text-transform: uppercase; color: var(–text-muted); margin-bottom: 3px; }
+.header-left h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.03em; color: var(–text-primary); line-height: 1; }
+.header-right { display: flex; align-items: center; gap: 6px; }
 
-/* sync badge */
-.sync-badge{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;
-    color:var(--text-muted);padding:4px 8px;border-radius:20px;border:1px solid var(--border);
-    background:var(--surface-2);letter-spacing:.04em;transition:all .3s}
-.sync-badge.syncing{color:var(--accent-2);border-color:#B0D8CC;background:var(--accent-2-light)}
-.sync-badge.error{color:var(--accent);border-color:#F5C8B0;background:var(--accent-light)}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.sync-badge.syncing .sync-dot{animation:pulse .8s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* sync indicator */
+.sync-pill { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(–border); background: var(–surface-2); cursor: pointer; transition: all 0.15s; }
+.sync-pill:active { opacity: 0.7; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.sync-dot.ok  { background: var(–sync-ok); }
+.sync-dot.err { background: var(–sync-err); }
+.sync-dot.spin { background: var(–sync-pending); animation: pulse 1s infinite; }
+.sync-label { font-family: var(–mono); font-size: 9px; color: var(–text-secondary); letter-spacing: 0.05em; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-.count-chip{font-family:var(--mono);font-size:11px;font-weight:500;background:var(--surface-2);
-    color:var(--text-secondary);padding:5px 10px;border-radius:20px;border:1px solid var(--border);
-    letter-spacing:.05em}
+.count-chip { font-family: var(–mono); font-size: 11px; font-weight: 500; background: var(–surface-2); color: var(–text-secondary); padding: 5px 10px; border-radius: 20px; border: 1px solid var(–border); display: none; }
 
-main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px}
-main::-webkit-scrollbar{display:none}
-#formView{padding:24px}
-#listView{padding:16px 24px;display:none}
-
-.section-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--text-muted);margin-bottom:16px}
+/* ── MAIN ── */
+main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 90px; }
+main::-webkit-scrollbar { display: none; }
+#formView { padding: 20px; }
+#listView { padding: 14px 20px; display: none; }
+.section-title { font-family: var(–mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(–text-muted); margin-bottom: 14px; }
 
 /* ── UPLOAD ── */
-.upload-area{width:100%;aspect-ratio:16/9;border:1.5px dashed var(--border);border-radius:12px;
-    background:var(--surface-2);display:flex;flex-direction:column;align-items:center;
-    justify-content:center;cursor:pointer;overflow:hidden;position:relative;
-    transition:border-color .2s,background .2s;margin-bottom:20px}
-.upload-area:active{background:#EEEEEE}
-.upload-area.has-image{border-style:solid;border-color:var(--border);background:var(--surface)}
-.upload-placeholder{display:flex;flex-direction:column;align-items:center;gap:10px}
-.upload-icon{width:40px;height:40px;border-radius:10px;background:#E8E8E8;
-    display:flex;align-items:center;justify-content:center}
-.upload-placeholder span{font-size:13px;color:var(--text-muted);font-weight:400}
-.upload-placeholder small{font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:.05em}
-#imagePreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-.remove-img-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.9);
-    backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.08);border-radius:6px;
-    width:28px;height:28px;display:none;align-items:center;justify-content:center;
-    cursor:pointer;z-index:10;color:var(--text-primary);transition:background .15s}
+.upload-area { width: 100%; aspect-ratio: 16/9; border: 1.5px dashed var(–border); border-radius: 12px; background: var(–surface-2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; transition: border-color 0.2s, background 0.2s; margin-bottom: 18px; }
+.upload-area:active { background: #EEEEEE; }
+.upload-area.has-image { border-style: solid; border-color: var(–border); }
+.upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.upload-icon { width: 40px; height: 40px; border-radius: 10px; background: #E8E8E8; display: flex; align-items: center; justify-content: center; }
+.upload-placeholder span { font-size: 13px; color: var(–text-muted); }
+.upload-placeholder small { font-family: var(–mono); font-size: 10px; color: var(–text-muted); letter-spacing: 0.05em; }
+#imagePreview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+.remove-img-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10; color: var(–text-primary); }
 
 /* ── FIELDS ── */
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:500;color:var(--text-secondary);
-    letter-spacing:.03em;margin-bottom:6px;font-family:var(--mono);text-transform:uppercase}
-.field label .req{color:var(--accent);margin-left:2px}
-input[type="text"],input[type="number"],textarea{width:100%;background:var(--surface);
-    border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;
-    font-family:var(--sans);font-size:14px;color:var(--text-primary);outline:none;
-    transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
-input[type="number"]{font-family:var(--mono);-moz-appearance:textfield}
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none}
-input::placeholder,textarea::placeholder{color:var(--text-muted)}
-input:focus,textarea:focus{border-color:var(--text-primary);box-shadow:0 0 0 3px rgba(26,25,22,.06)}
-textarea{resize:none;min-height:80px}
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; font-weight: 500; color: var(–text-secondary); letter-spacing: 0.03em; margin-bottom: 6px; font-family: var(–mono); text-transform: uppercase; }
+.field label .req { color: var(–accent); margin-left: 2px; }
+input[type=“text”], input[type=“number”], textarea { width: 100%; background: var(–surface); border: 1.5px solid var(–border); border-radius: 10px; padding: 11px 14px; font-family: var(–sans); font-size: 14px; color: var(–text-primary); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; }
+input[type=“number”] { font-family: var(–mono); -moz-appearance: textfield; }
+input[type=“number”]::-webkit-inner-spin-button, input[type=“number”]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input::placeholder, textarea::placeholder { color: var(–text-muted); }
+input:focus, textarea:focus { border-color: var(–text-primary); box-shadow: 0 0 0 3px rgba(26,25,22,0.06); }
+textarea { resize: none; min-height: 80px; }
+.id-warning { font-family: var(–mono); font-size: 10px; color: var(–accent); margin-top: 5px; display: none; }
+.id-warning.show { display: block; }
 
 /* ── TEAM TAGS ── */
-.team-tag-label{font-size:11px;font-weight:500;color:var(--text-secondary);letter-spacing:.03em;
-    margin-bottom:10px;display:block;font-family:var(--mono);text-transform:uppercase}
-.team-tag-label .req{color:var(--accent);margin-left:2px}
-.team-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.team-tag{padding:7px 13px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);
-    font-size:12.5px;font-weight:400;color:var(--text-secondary);cursor:pointer;
-    transition:all .15s;user-select:none;-webkit-user-select:none}
-.team-tag:active{transform:scale(.97)}
-.team-tag.selected{background:var(--text-primary);border-color:var(--text-primary);color:white;font-weight:500}
-.custom-team-wrap{margin-top:8px;margin-bottom:16px;overflow:hidden;max-height:0;transition:max-height .25s ease}
-.custom-team-wrap.open{max-height:60px}
+.team-tag-label { font-size: 11px; font-weight: 500; color: var(–text-secondary); letter-spacing: 0.03em; margin-bottom: 10px; display: block; font-family: var(–mono); text-transform: uppercase; }
+.team-tag-label .req { color: var(–accent); margin-left: 2px; }
+.team-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.team-tag { padding: 7px 13px; border-radius: 8px; background: var(–surface); border: 1.5px solid var(–border); font-size: 12.5px; color: var(–text-secondary); cursor: pointer; transition: all 0.15s; user-select: none; -webkit-user-select: none; }
+.team-tag:active { transform: scale(0.97); }
+.team-tag.selected { background: var(–text-primary); border-color: var(–text-primary); color: white; font-weight: 500; }
+.custom-team-wrap { margin-top: 8px; margin-bottom: 14px; overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+.custom-team-wrap.open { max-height: 60px; }
 
-.btn-submit{width:100%;background:var(--text-primary);color:white;border:none;padding:14px;
-    border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;
-    transition:opacity .15s;margin-top:24px}
-.btn-submit:active{opacity:.8}
+/* ── BUTTONS ── */
+.btn-submit { width: 100%; background: var(–text-primary); color: white; border: none; padding: 14px; border-radius: 10px; font-family: var(–sans); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.01em; transition: opacity 0.15s; margin-top: 20px; }
+.btn-submit:active { opacity: 0.8; }
 
-/* ── STATS ── */
-.list-stats{display:flex;gap:10px;margin-bottom:20px}
-.stat-chip{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
-.stat-chip .stat-num{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--text-primary);line-height:1}
-.stat-chip .stat-label{font-size:10px;color:var(--text-muted);margin-top:4px;letter-spacing:.03em}
+/* ── LIST ── */
+.export-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+.btn-export-inline { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid var(–border); border-radius: 10px; padding: 10px 12px; font-family: var(–sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; background: var(–surface); color: var(–text-primary); }
+.btn-export-inline:active { background: var(–surface-2); transform: scale(0.98); }
+.btn-export-inline.pdf  { border-color: #F5C8B0; color: var(–accent); background: var(–accent-light); }
+.btn-export-inline.excel { border-color: #B0D8CC; color: var(–accent-2); background: var(–accent-2-light); }
+.btn-export-inline.clear-all { border-color: #F5C6C6; color: #C0392B; background: #FFF5F5; flex: 0.7; }
 
-/* ── CARDS ── */
-.defect-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
-    overflow:hidden;margin-bottom:12px}
-.card-image{width:100%;aspect-ratio:16/7;object-fit:cover;display:block;background:var(--surface-2)}
-.card-body{padding:14px 16px}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.card-id{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text-muted);
-    letter-spacing:.1em;text-transform:uppercase}
-.card-date{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
-.card-location{font-size:14px;font-weight:600;color:var(--text-primary);letter-spacing:-.02em;margin-bottom:8px}
-.card-details{font-size:12.5px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5}
-.card-footer{display:flex;align-items:center;justify-content:space-between}
-.team-badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;
-    background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}
-.card-remarks{font-family:var(--mono);font-size:10px;color:var(--text-muted);font-style:italic}
-.card-actions{display:flex;gap:6px}
-.card-action-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);
-    background:var(--surface);display:flex;align-items:center;justify-content:center;
-    cursor:pointer;color:var(--text-muted);transition:all .15s;flex-shrink:0}
-.card-action-btn:active{background:var(--surface-2);transform:scale(.93)}
-.card-action-btn.delete{color:#C0392B;border-color:#F5C6C6}
-.card-action-btn.delete:active{background:#FFF0F0}
+.list-stats { display: flex; gap: 10px; margin-bottom: 16px; }
+.stat-chip { flex: 1; background: var(–surface); border: 1px solid var(–border); border-radius: 10px; padding: 12px 14px; }
+.stat-chip .stat-num { font-family: var(–mono); font-size: 24px; font-weight: 500; color: var(–text-primary); line-height: 1; }
+.stat-chip .stat-label { font-size: 10px; color: var(–text-muted); margin-top: 4px; letter-spacing: 0.03em; }
 
-/* ── EMPTY STATE ── */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:60px 20px;text-align:center}
-.empty-icon{width:56px;height:56px;background:var(--surface-2);border-radius:14px;
-    display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-.empty-state p{font-size:14px;color:var(--text-secondary);margin-bottom:6px}
-.empty-state small{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+/* ── DEFECT CARD ── */
+.defect-card { background: var(–surface); border: 1px solid var(–border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+.card-image { width: 100%; aspect-ratio: 16/7; object-fit: cover; display: block; background: var(–surface-2); }
+.card-body { padding: 14px 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.card-id { font-family: var(–mono); font-size: 10px; font-weight: 500; color: var(–text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.card-date { font-family: var(–mono); font-size: 10px; color: var(–text-muted); }
+.card-location { font-size: 14px; font-weight: 600; color: var(–text-primary); letter-spacing: -0.02em; margin-bottom: 8px; }
+.card-details { font-size: 12.5px; color: var(–text-secondary); margin-bottom: 10px; line-height: 1.5; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.team-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; background: var(–surface-2); color: var(–text-secondary); border: 1px solid var(–border); }
+.card-remarks { font-family: var(–mono); font-size: 10px; color: var(–text-muted); font-style: italic; }
+.card-actions { display: flex; gap: 6px; }
+.card-action-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(–border); background: var(–surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(–text-muted); transition: all 0.15s; flex-shrink: 0; }
+.card-action-btn:active { background: var(–surface-2); transform: scale(0.93); }
+.card-action-btn.delete { color: #C0392B; border-color: #F5C6C6; }
+.card-action-btn.delete:active { background: #FFF0F0; }
 
-/* ── NAV ── */
-.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--bg);
-    border-top:1px solid var(--border);padding:10px 24px 20px;display:flex;z-index:20}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;
-    border:none;background:none;cursor:pointer;color:var(--text-muted);transition:color .15s;
-    position:relative;font-family:var(--sans)}
-.nav-btn.active{color:var(--text-primary)}
-.nav-btn span{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;font-family:var(--mono)}
-.nav-dot{position:absolute;top:6px;right:22px;width:6px;height:6px;border-radius:50%;
-    background:var(--accent);display:none}
-.nav-dot.visible{display:block}
+/* ── PAGINATION ── */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 0 4px; }
+.page-btn { width: 36px; height: 36px; border-radius: 9px; border: 1.5px solid var(–border); background: var(–surface); font-family: var(–mono); font-size: 12px; color: var(–text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.page-btn:active { background: var(–surface-2); }
+.page-btn.active { background: var(–text-primary); color: white; border-color: var(–text-primary); }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-info { font-family: var(–mono); font-size: 11px; color: var(–text-muted); padding: 0 4px; }
+
+/* ── EMPTY ── */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; }
+.empty-icon { width: 56px; height: 56px; background: var(–surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.empty-state p { font-size: 14px; color: var(–text-secondary); margin-bottom: 6px; }
+.empty-state small { font-family: var(–mono); font-size: 11px; color: var(–text-muted); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: var(–bg); border-top: 1px solid var(–border); padding: 10px 24px 20px; display: flex; z-index: 20; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; border: none; background: none; cursor: pointer; color: var(–text-muted); transition: color 0.15s; position: relative; font-family: var(–sans); }
+.nav-btn.active { color: var(–text-primary); }
+.nav-btn span { font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; font-family: var(–mono); }
+.nav-dot { position: absolute; top: 6px; right: 22px; width: 6px; height: 6px; border-radius: 50%; background: var(–accent); display: none; }
+.nav-dot.visible { display: block; }
 
 /* ── MODALS ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(26,25,22,.5);z-index:50;
-    display:none;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 36px;
-    width:100%;max-width:430px;animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-.modal-title{font-size:16px;font-weight:600;letter-spacing:-.02em}
-.modal-close{width:28px;height:28px;border-radius:6px;background:var(--surface-2);border:none;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.5); z-index: 50; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal-sheet { background: var(–surface); border-radius: 20px 20px 0 0; padding: 24px 24px 32px; width: 100%; max-width: 430px; animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1); }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+.modal-close { width: 28px; height: 28px; border-radius: 6px; background: var(–surface-2); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(–text-secondary); }
 
-/* export options */
-.export-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.export-option{border:1.5px solid var(--border);border-radius:12px;padding:20px 16px;cursor:pointer;
-    background:var(--surface);display:flex;flex-direction:column;gap:12px;transition:all .15s}
-.export-option:active{background:var(--surface-2);transform:scale(.98)}
-.export-option-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
-.export-option-icon.pdf{background:var(--accent-light);color:var(--accent)}
-.export-option-icon.excel{background:var(--accent-2-light);color:var(--accent-2)}
-.export-option-label{font-size:13px;font-weight:600;color:var(--text-primary);letter-spacing:-.01em}
-.export-option-desc{font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px}
+/* ── SYNC MODAL ── */
+.sync-modal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.5); z-index: 52; display: none; align-items: flex-end; justify-content: center; }
+.sync-modal-overlay.open { display: flex; }
+.sync-modal-sheet { background: var(–surface); border-radius: 20px 20px 0 0; padding: 24px 24px 36px; width: 100%; max-width: 430px; animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1); }
+.sync-info-box { background: var(–surface-2); border: 1px solid var(–border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.sync-info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sync-info-row:last-child { margin-bottom: 0; }
+.sync-info-label { font-family: var(–mono); font-size: 10px; color: var(–text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.sync-info-value { font-family: var(–mono); font-size: 11px; color: var(–text-primary); font-weight: 500; }
+.sync-key-display { font-family: var(–mono); font-size: 13px; color: var(–text-primary); font-weight: 500; background: var(–surface); border: 1.5px solid var(–border); border-radius: 8px; padding: 10px 14px; width: 100%; margin-bottom: 10px; letter-spacing: 0.05em; word-break: break-all; }
+.sync-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.sync-btn { flex: 1; min-width: 100px; padding: 10px 14px; border-radius: 9px; border: 1.5px solid var(–border); background: var(–surface); font-family: var(–sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(–text-primary); }
+.sync-btn:active { background: var(–surface-2); }
+.sync-btn.primary { background: var(–text-primary); color: white; border-color: var(–text-primary); }
+.sync-btn.primary:active { opacity: 0.8; }
+.sync-btn.danger { color: #C0392B; border-color: #F5C6C6; background: #FFF5F5; }
+.sync-divider { border: none; border-top: 1px solid var(–border); margin: 16px 0; }
+.sync-join-wrap { display: flex; gap: 8px; }
+.sync-join-wrap input { flex: 1; }
 
-/* export bar */
-.export-bar{display:flex;gap:10px;margin-bottom:16px}
-.btn-export-inline{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
-    border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;
-    font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;
-    transition:all .15s;background:var(--surface);color:var(--text-primary)}
-.btn-export-inline:active{background:var(--surface-2);transform:scale(.98)}
-.btn-export-inline.pdf{border-color:#F5C8B0;color:var(--accent);background:var(--accent-light)}
-.btn-export-inline.excel{border-color:#B0D8CC;color:var(--accent-2);background:var(--accent-2-light)}
-.btn-export-inline.danger{border-color:#F5C6C6;color:#C0392B;background:#FFF8F8}
-.btn-export-inline svg{flex-shrink:0}
+/* ── PICKER SHEET ── */
+.picker-btn { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(–surface); border: 1.5px solid var(–border); border-radius: 12px; cursor: pointer; text-align: left; transition: background 0.15s; font-family: var(–sans); }
+.picker-btn:active { background: var(–surface-2); }
+.picker-btn-icon { width: 44px; height: 44px; border-radius: 11px; background: var(–accent-light); color: var(–accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.picker-btn-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.picker-btn-text span { font-size: 14px; font-weight: 500; color: var(–text-primary); }
+.picker-btn-text small { font-size: 11px; color: var(–text-muted); font-family: var(–mono); }
 
-/* loading */
-.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);
-    z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.loading-overlay.show{display:flex}
-.spinner{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--text-primary);
-    border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{font-size:13px;font-weight:500;color:var(--text-primary)}
-.loading-sub{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+/* ── EDIT MODAL ── */
+.edit-modal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.5); z-index: 55; display: none; align-items: flex-end; justify-content: center; }
+.edit-modal-overlay.open { display: flex; }
+.edit-modal-sheet { background: var(–surface); border-radius: 20px 20px 0 0; padding: 0; width: 100%; max-width: 430px; max-height: 92svh; display: flex; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1); }
+.edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 16px; border-bottom: 1px solid var(–border); flex-shrink: 0; }
+.edit-modal-header-left .edit-modal-sub { font-family: var(–mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(–text-muted); margin-bottom: 3px; }
+.edit-modal-title { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: var(–text-primary); }
+.edit-modal-body { overflow-y: auto; padding: 20px 20px 0; flex: 1; }
+.edit-modal-body::-webkit-scrollbar { display: none; }
+.edit-upload-area { width: 100%; aspect-ratio: 16/7; border: 1.5px dashed var(–border); border-radius: 10px; background: var(–surface-2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; margin-bottom: 16px; }
+.edit-upload-area:active { background: #EEEEEE; }
+.edit-upload-area.has-image { border-style: solid; border-color: var(–border); }
+#editImagePreview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+.edit-remove-img-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10; color: var(–text-primary); }
+.edit-modal-footer { padding: 16px 20px 28px; display: flex; gap: 10px; flex-shrink: 0; border-top: 1px solid var(–border); }
+.btn-cancel { flex: 1; background: var(–surface-2); color: var(–text-secondary); border: 1px solid var(–border); padding: 13px; border-radius: 10px; font-family: var(–sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+.btn-cancel:active { opacity: 0.7; }
+.btn-save-edit { flex: 2; background: var(–text-primary); color: white; border: none; padding: 13px; border-radius: 10px; font-family: var(–sans); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: opacity 0.15s; }
+.btn-save-edit:active { opacity: 0.8; }
 
-/* toast */
-.toast{position:absolute;top:80px;left:50%;transform:translateX(-50%) translateY(-8px);
-    background:var(--text-primary);color:white;padding:10px 20px;border-radius:8px;
-    font-size:12.5px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;
-    transition:all .25s cubic-bezier(.32,.72,0,1);z-index:40}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ── CONFIRM ── */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.5); z-index: 58; display: none; align-items: center; justify-content: center; padding: 24px; }
+.confirm-overlay.open { display: flex; }
+.confirm-box { background: var(–surface); border-radius: 16px; padding: 24px; width: 100%; max-width: 320px; text-align: center; animation: popIn 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.confirm-icon { width: 48px; height: 48px; background: #FFF0F0; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: #C0392B; }
+.confirm-title { font-size: 15px; font-weight: 600; color: var(–text-primary); margin-bottom: 6px; letter-spacing: -0.02em; }
+.confirm-sub { font-size: 12.5px; color: var(–text-muted); margin-bottom: 20px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-btn-cancel { flex: 1; background: var(–surface-2); color: var(–text-secondary); border: 1px solid var(–border); padding: 11px; border-radius: 9px; font-family: var(–sans); font-size: 13px; font-weight: 500; cursor: pointer; }
+.confirm-btn-delete { flex: 1; background: #C0392B; color: white; border: none; padding: 11px; border-radius: 9px; font-family: var(–sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+.confirm-btn-delete:active { opacity: 0.8; }
 
-/* edit modal */
-.edit-modal-overlay{position:fixed;inset:0;background:rgba(26,25,22,.5);z-index:55;
-    display:none;align-items:flex-end;justify-content:center}
-.edit-modal-overlay.open{display:flex}
-.edit-modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:0;
-    width:100%;max-width:430px;max-height:92svh;display:flex;flex-direction:column;
-    animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
-.edit-modal-header{display:flex;align-items:center;justify-content:space-between;
-    padding:20px 20px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
-.edit-modal-header-left .edit-modal-sub{font-family:var(--mono);font-size:9px;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--text-muted);margin-bottom:3px}
-.edit-modal-title{font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text-primary)}
-.edit-modal-body{overflow-y:auto;padding:20px 20px 0;flex:1}
-.edit-modal-body::-webkit-scrollbar{display:none}
-.edit-upload-area{width:100%;aspect-ratio:16/7;border:1.5px dashed var(--border);border-radius:10px;
-    background:var(--surface-2);display:flex;flex-direction:column;align-items:center;
-    justify-content:center;cursor:pointer;overflow:hidden;position:relative;
-    margin-bottom:16px;transition:border-color .2s,background .2s}
-.edit-upload-area:active{background:#EEEEEE}
-.edit-upload-area.has-image{border-style:solid;border-color:var(--border);background:var(--surface)}
-#editImagePreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-.edit-remove-img-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);
-    backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.08);border-radius:6px;
-    width:28px;height:28px;display:none;align-items:center;justify-content:center;
-    cursor:pointer;z-index:10;color:var(--text-primary)}
-.edit-modal-footer{padding:16px 20px 28px;display:flex;gap:10px;flex-shrink:0;border-top:1px solid var(--border)}
-.btn-cancel{flex:1;background:var(--surface-2);color:var(--text-secondary);
-    border:1px solid var(--border);padding:13px;border-radius:10px;
-    font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
-.btn-cancel:active{opacity:.7}
-.btn-save-edit{flex:2;background:var(--text-primary);color:white;border:none;padding:13px;
-    border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s}
-.btn-save-edit:active{opacity:.8}
+/* ── PDF PREVIEW ── */
+.pdf-preview-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.6); z-index: 62; display: none; align-items: flex-end; justify-content: center; }
+.pdf-preview-overlay.open { display: flex; }
+.pdf-preview-sheet { background: var(–surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 430px; height: 92svh; display: flex; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1); }
+.pdf-preview-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 14px; border-bottom: 1px solid var(–border); flex-shrink: 0; }
+.pdf-preview-body { flex: 1; overflow: hidden; padding: 12px 16px; background: var(–surface-2); }
+.pdf-preview-footer { padding: 14px 20px 28px; display: flex; gap: 10px; flex-shrink: 0; border-top: 1px solid var(–border); }
 
-/* confirm modal */
-.confirm-overlay{position:fixed;inset:0;background:rgba(26,25,22,.5);z-index:58;
-    display:none;align-items:center;justify-content:center;padding:24px}
-.confirm-overlay.open{display:flex}
-.confirm-box{background:var(--surface);border-radius:16px;padding:24px;width:100%;
-    max-width:320px;text-align:center;animation:popIn .2s cubic-bezier(.34,1.56,.64,1)}
-@keyframes popIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
-.confirm-icon{width:48px;height:48px;background:#FFF0F0;border-radius:12px;
-    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#C0392B}
-.confirm-icon.warn{background:#FFF8E6;color:#D4841A}
-.confirm-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;letter-spacing:-.02em}
-.confirm-sub{font-size:12.5px;color:var(--text-muted);margin-bottom:20px;line-height:1.5}
-.confirm-actions{display:flex;gap:10px}
-.confirm-btn-cancel{flex:1;background:var(--surface-2);color:var(--text-secondary);
-    border:1px solid var(--border);padding:11px;border-radius:9px;
-    font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer}
-.confirm-btn-delete{flex:1;background:#C0392B;color:white;border:none;padding:11px;
-    border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:500;
-    cursor:pointer;transition:opacity .15s}
-.confirm-btn-delete:active{opacity:.8}
-.confirm-btn-warn{flex:1;background:#D4841A;color:white;border:none;padding:11px;
-    border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:500;
-    cursor:pointer;transition:opacity .15s}
+/* ── LOADING ── */
+.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+.loading-overlay.show { display: flex; }
+.spinner { width: 36px; height: 36px; border: 2px solid var(–border); border-top-color: var(–text-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; font-weight: 500; color: var(–text-primary); }
+.loading-sub { font-family: var(–mono); font-size: 11px; color: var(–text-muted); }
 
-/* pdf preview */
-.pdf-preview-overlay{position:fixed;inset:0;background:rgba(26,25,22,.6);z-index:62;
-    display:none;align-items:flex-end;justify-content:center}
-.pdf-preview-overlay.open{display:flex}
-.pdf-preview-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;
-    max-width:430px;height:92svh;display:flex;flex-direction:column;
-    animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
-.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;
-    padding:20px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
-.pdf-preview-body{flex:1;overflow:hidden;padding:12px 16px;background:var(--surface-2)}
-.pdf-preview-footer{padding:14px 20px 28px;display:flex;gap:10px;flex-shrink:0;border-top:1px solid var(--border)}
+/* ── TOAST ── */
+.toast { position: absolute; top: 80px; left: 50%; transform: translateX(-50%) translateY(-8px); background: var(–text-primary); color: white; padding: 10px 20px; border-radius: 8px; font-size: 12.5px; font-weight: 500; white-space: nowrap; opacity: 0; pointer-events: none; transition: all 0.25s cubic-bezier(0.32,0.72,0,1); z-index: 40; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* picker */
-.picker-btn{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;
-    background:var(--surface);border:1.5px solid var(--border);border-radius:12px;
-    cursor:pointer;text-align:left;transition:background .15s;font-family:var(--sans)}
-.picker-btn:active{background:var(--surface-2)}
-.picker-btn-icon{width:44px;height:44px;border-radius:11px;background:var(--accent-light);
-    color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.picker-btn-text{flex:1;display:flex;flex-direction:column;gap:2px}
-.picker-btn-text span{font-size:14px;font-weight:500;color:var(--text-primary)}
-.picker-btn-text small{font-size:11px;color:var(--text-muted);font-family:var(--mono)}
-
-.id-warning{font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:5px;display:none}
-.id-warning.show{display:block}
-
-/* loading skeleton */
-.skeleton-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
-    overflow:hidden;margin-bottom:12px}
-.skeleton-img{width:100%;aspect-ratio:16/7;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
-    background-size:200% 100%;animation:shimmer 1.5s infinite}
-.skeleton-body{padding:14px 16px}
-.skeleton-line{height:12px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
-    background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;margin-bottom:8px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* ── STORAGE BADGE ── */
+.storage-badge { display: flex; align-items: center; gap: 4px; font-family: var(–mono); font-size: 9px; color: var(–text-muted); padding: 4px 8px; border-radius: 6px; background: var(–surface-2); border: 1px solid var(–border); }
+.storage-bar-wrap { height: 3px; background: var(–border); border-radius: 2px; overflow: hidden; width: 40px; }
+.storage-bar { height: 100%; background: var(–accent-2); border-radius: 2px; transition: width 0.3s; }
+.storage-bar.warn { background: var(–accent); }
 </style>
 
 </head>
 <body>
-
 <div class="app">
-  <header class="header">
-    <div class="header-left">
-      <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP</div>
-      <h1 id="headerTitle">Defect Log</h1>
-    </div>
-    <div class="header-right">
-      <div class="sync-badge" id="syncBadge">
-        <div class="sync-dot"></div>
-        <span id="syncText">LIVE</span>
-      </div>
-      <div class="count-chip" id="countChip" style="display:none">
-        <span id="countNum">0</span> items
-      </div>
-    </div>
-  </header>
+    <header class="header">
+        <div class="header-left">
+            <div class="eyebrow" id="headerEyebrow">KS CONSTRUCTION KHONKAEN LP</div>
+            <h1 id="headerTitle">Defect Log</h1>
+        </div>
+        <div class="header-right">
+            <!-- sync pill -->
+            <div class="sync-pill" onclick="openSyncModal()" title="ซิงก์ข้อมูลหลายเครื่อง">
+                <div class="sync-dot" id="syncDot"></div>
+                <span class="sync-label" id="syncLabel">SYNC</span>
+            </div>
+            <div class="count-chip" id="countChip"><span id="countNum">0</span> items</div>
+        </div>
+    </header>
 
-  <main id="mainScroll">
+```
+<main id="mainScroll">
     <!-- FORM VIEW -->
     <div id="formView">
-      <p class="section-title">New Entry</p>
-      <input type="file" id="photoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="previewImage(event)">
-      <input type="file" id="photoInputGallery" accept="image/*" style="display:none" onchange="previewImage(event)">
-      <div class="upload-area" id="uploadArea" onclick="openPickerSheet('main')">
-        <div class="upload-placeholder" id="uploadPlaceholder">
-          <div class="upload-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </div>
-          <span>แตะเพื่อถ่ายรูป / อัปโหลด</span>
-          <small>JPG · PNG · HEIC</small>
+        <p class="section-title">New Entry</p>
+        <input type="file" id="photoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="previewImage(event)">
+        <input type="file" id="photoInputGallery" accept="image/*" style="display:none" onchange="previewImage(event)">
+        <div class="upload-area" id="uploadArea" onclick="openPickerSheet('main')">
+            <div class="upload-placeholder" id="uploadPlaceholder">
+                <div class="upload-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#A8A49D"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
+                <span>แตะเพื่อถ่ายรูป / อัปโหลด</span>
+                <small>JPG · PNG · HEIC</small>
+            </div>
+            <img id="imagePreview" src="" alt="">
+            <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
         </div>
-        <img id="imagePreview" src="" alt="">
-        <button class="remove-img-btn" id="removeImgBtn" onclick="clearImage(event)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <div class="field">
+            <label>เลขที่ Defect <span class="req">*</span></label>
+            <input type="number" id="defectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkDuplicateId()">
+            <div class="id-warning" id="idWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
+        </div>
+        <div class="field">
+            <label>Zone / ตำแหน่ง <span class="req">*</span></label>
+            <input type="text" id="location" placeholder="เช่น ระเบียงชั้น 2, ห้องนอนชั้น 3">
+        </div>
+        <div class="field">
+            <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
+            <div class="team-tags" id="teamTags">
+                <div class="team-tag" onclick="selectTeam(this,'ช่างทาสี')">ช่างทาสี</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างประปา')">ช่างประปา</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+                <div class="team-tag" onclick="selectTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+                <div class="team-tag" onclick="selectTeam(this,'__other__')">อื่นๆ ...</div>
+            </div>
+            <div class="custom-team-wrap" id="customTeamWrap">
+                <input type="text" id="customTeamInput" placeholder="ระบุทีม / ประเภทงาน">
+            </div>
+        </div>
+        <div class="field">
+            <label>รายการที่ต้องแก้ <span class="req">*</span></label>
+            <textarea id="details" placeholder="เช่น เก็บสีใต้เหล็ก, รอยแตกร้าวผนัง, ประตูปิดไม่สนิท"></textarea>
+        </div>
+        <div class="field">
+            <label>หมายเหตุ</label>
+            <input type="text" id="remarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
+        </div>
+        <button class="btn-submit" onclick="saveDefect()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            บันทึกรายการ
         </button>
-      </div>
-
-```
-  <div class="field">
-    <label>เลขที่ Defect <span class="req">*</span></label>
-    <input type="number" id="defectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkDuplicateId()">
-    <div class="id-warning" id="idWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
-  </div>
-  <div class="field">
-    <label>Zone / ตำแหน่ง <span class="req">*</span></label>
-    <input type="text" id="location" placeholder="เช่น ระเบียงชั้น 2, ห้องนอนชั้น 3">
-  </div>
-  <div class="field">
-    <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
-    <div class="team-tags" id="teamTags">
-      <div class="team-tag" onclick="selectTeam(this,'ช่างทาสี')">ช่างทาสี</div>
-      <div class="team-tag" onclick="selectTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-      <div class="team-tag" onclick="selectTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-      <div class="team-tag" onclick="selectTeam(this,'ช่างประปา')">ช่างประปา</div>
-      <div class="team-tag" onclick="selectTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-      <div class="team-tag" onclick="selectTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-      <div class="team-tag" onclick="selectTeam(this,'__other__')">อื่นๆ ...</div>
     </div>
-    <div class="custom-team-wrap" id="customTeamWrap">
-      <input type="text" id="customTeamInput" placeholder="ระบุทีม / ประเภทงาน">
+
+    <!-- LIST VIEW -->
+    <div id="listView">
+        <div class="export-bar" id="exportBar" style="display:none">
+            <button class="btn-export-inline pdf" onclick="exportPDF()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                PDF
+            </button>
+            <button class="btn-export-inline excel" onclick="exportExcel()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Excel
+            </button>
+            <button class="btn-export-inline clear-all" onclick="openClearAllConfirm()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                ล้างทั้งหมด
+            </button>
+        </div>
+        <div class="list-stats" id="listStats" style="display:none">
+            <div class="stat-chip">
+                <div class="stat-num" id="totalCount">0</div>
+                <div class="stat-label">รายการทั้งหมด</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-num" id="teamCount">0</div>
+                <div class="stat-label">ทีมที่เกี่ยวข้อง</div>
+            </div>
+            <div class="stat-chip" style="flex:0.8;cursor:pointer" onclick="openSyncModal()" title="พื้นที่จัดเก็บ">
+                <div style="display:flex;align-items:center;gap:6px">
+                    <div class="storage-bar-wrap"><div class="storage-bar" id="storageBar"></div></div>
+                    <div class="stat-num" id="storageNum" style="font-size:14px">0%</div>
+                </div>
+                <div class="stat-label">Storage</div>
+            </div>
+        </div>
+        <div id="defectsContainer"></div>
+        <div id="paginationWrap"></div>
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <p>ยังไม่มีรายการ Defect</p>
+            <small>เริ่มเพิ่มรายการแรกได้เลย</small>
+        </div>
     </div>
-  </div>
-  <div class="field">
-    <label>รายการที่ต้องแก้ <span class="req">*</span></label>
-    <textarea id="details" placeholder="เช่น เก็บสีใต้เหล็ก, รอยแตกร้าวผนัง, ประตูปิดไม่สนิท"></textarea>
-  </div>
-  <div class="field">
-    <label>หมายเหตุ</label>
-    <input type="text" id="remarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
-  </div>
-  <button class="btn-submit" onclick="saveDefect()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-    บันทึกรายการ
-  </button>
-</div>
+</main>
 
-<!-- LIST VIEW -->
-<div id="listView">
-  <div class="export-bar" id="exportBar" style="display:none">
-    <button class="btn-export-inline pdf" onclick="exportPDF()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-      PDF
-    </button>
-    <button class="btn-export-inline excel" onclick="exportExcel()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-      Excel
-    </button>
-    <button class="btn-export-inline danger" onclick="openClearAllModal()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      ล้างทั้งหมด
-    </button>
-  </div>
-
-  <div class="list-stats" id="listStats" style="display:none">
-    <div class="stat-chip">
-      <div class="stat-num" id="totalCount">0</div>
-      <div class="stat-label">รายการทั้งหมด</div>
-    </div>
-    <div class="stat-chip">
-      <div class="stat-num" id="teamCount">0</div>
-      <div class="stat-label">ทีมที่เกี่ยวข้อง</div>
-    </div>
-  </div>
-
-  <div id="defectsContainer"></div>
-  <div class="empty-state" id="emptyState">
-    <div class="empty-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-    </div>
-    <p>ยังไม่มีรายการ Defect</p>
-    <small>เริ่มเพิ่มรายการแรกได้เลย</small>
-  </div>
-</div>
-```
-
-  </main>
-
-  <nav class="bottom-nav">
+<nav class="bottom-nav">
     <button class="nav-btn active" id="tab-form" onclick="switchTab('form')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
-      <span>เพิ่ม</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>เพิ่ม</span>
     </button>
     <button class="nav-btn" id="tab-list" onclick="switchTab('list')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      <span>รายการ</span>
-      <div class="nav-dot" id="navDot"></div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>รายการ</span>
+        <div class="nav-dot" id="navDot"></div>
     </button>
-  </nav>
+</nav>
 
-  <div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div>
+```
+
 </div>
 
-<!-- Photo Picker -->
+<!-- ── PHOTO PICKER ── -->
 
 <div class="modal-overlay" id="pickerSheet" onclick="closePickerSheet(event)">
-  <div class="modal-sheet" style="padding-bottom:32px">
-    <div class="modal-header">
-      <span class="modal-title">เลือกรูปภาพ</span>
-      <button class="modal-close" onclick="document.getElementById('pickerSheet').classList.remove('open')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
+    <div class="modal-sheet" style="padding-bottom:32px">
+        <div class="modal-header">
+            <span class="modal-title">เลือกรูปภาพ</span>
+            <button class="modal-close" onclick="document.getElementById('pickerSheet').classList.remove('open')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="picker-btn" onclick="pickerChoose('camera')">
+                <div class="picker-btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                <div class="picker-btn-text"><span>ถ่ายรูปใหม่</span><small>เปิดกล้องถ่ายรูป</small></div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--text-muted)"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+            <button class="picker-btn" onclick="pickerChoose('gallery')">
+                <div class="picker-btn-icon" style="background:var(--accent-2-light);color:var(--accent-2)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                <div class="picker-btn-text"><span>เลือกจากแกลเลอรี่</span><small>รูปในอัลบั้มของคุณ</small></div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--text-muted)"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+        </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="picker-btn" onclick="pickerChoose('camera')">
-        <div class="picker-btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-        <div class="picker-btn-text"><span>ถ่ายรูปใหม่</span><small>เปิดกล้องถ่ายรูป</small></div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-      </button>
-      <button class="picker-btn" onclick="pickerChoose('gallery')">
-        <div class="picker-btn-icon" style="background:var(--accent-2-light);color:var(--accent-2)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-        <div class="picker-btn-text"><span>เลือกจากแกลเลอรี่</span><small>รูปในอัลบั้มของคุณ</small></div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-      </button>
-    </div>
-  </div>
 </div>
 
-<!-- PDF Preview -->
+<!-- ── SYNC MODAL ── -->
 
-<div class="pdf-preview-overlay" id="pdfPreviewModal">
-  <div class="pdf-preview-sheet">
-    <div class="pdf-preview-header">
-      <div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">ตัวอย่างรายงาน</div>
-        <div style="font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text-primary)" id="pdfPreviewTitle">Defect_Report.pdf</div>
-      </div>
-      <button class="modal-close" onclick="closePdfPreview()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+<div class="sync-modal-overlay" id="syncModal" onclick="closeSyncOnOverlay(event)">
+    <div class="sync-modal-sheet">
+        <div class="modal-header">
+            <span class="modal-title">ซิงก์หลายเครื่อง</span>
+            <button class="modal-close" onclick="closeSyncModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="sync-info-box" id="syncInfoBox">
+            <div class="sync-info-row">
+                <span class="sync-info-label">Project Key</span>
+                <span class="sync-info-value" id="syncKeyShort">—</span>
+            </div>
+            <div class="sync-info-row">
+                <span class="sync-info-label">รายการ</span>
+                <span class="sync-info-value" id="syncItemCount">0 items</span>
+            </div>
+            <div class="sync-info-row">
+                <span class="sync-info-label">ซิงก์ล่าสุด</span>
+                <span class="sync-info-value" id="syncLastTime">—</span>
+            </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase">Key ของโปรเจคนี้ (คัดลอกไปใช้บนเครื่องอื่น)</div>
+        <div class="sync-key-display" id="syncKeyFull" onclick="copyProjectKey()">—</div>
+        <div class="sync-actions" style="margin-bottom:0">
+            <button class="sync-btn" onclick="copyProjectKey()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                คัดลอก Key
+            </button>
+            <button class="sync-btn primary" onclick="pushToCloud()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+                อัปโหลด
+            </button>
+            <button class="sync-btn" onclick="pullFromCloud()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+                ดาวน์โหลด
+            </button>
+        </div>
+        <hr class="sync-divider">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.08em;text-transform:uppercase">เข้าร่วมโปรเจคจากเครื่องอื่น (ใส่ Key)</div>
+        <div class="sync-join-wrap">
+            <input type="text" id="joinKeyInput" placeholder="วาง Project Key ที่นี่">
+            <button class="sync-btn primary" style="flex:0;padding:10px 16px;white-space:nowrap" onclick="joinProject()">เข้าร่วม</button>
+        </div>
+        <hr class="sync-divider">
+        <button class="sync-btn danger" style="width:100%" onclick="openNewProjectConfirm()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM12 8v4m0 4h.01"/></svg>
+            สร้างโปรเจคใหม่ (ล้างข้อมูลทั้งหมด)
+        </button>
     </div>
-    <div class="pdf-preview-body">
-      <iframe id="pdfPreviewFrame" src="" style="width:100%;height:100%;border:none;border-radius:8px;background:#f0f0f0"></iframe>
-    </div>
-    <div class="pdf-preview-footer">
-      <button class="btn-cancel" onclick="closePdfPreview()">ปิด</button>
-      <button class="btn-save-edit" onclick="downloadCurrentPdf()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-        ดาวน์โหลด PDF
-      </button>
-    </div>
-  </div>
 </div>
 
-<!-- Loading -->
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text">กำลังสร้างไฟล์...</div>
-  <div class="loading-sub">กรุณารอสักครู่</div>
-</div>
-
-<!-- Edit Modal -->
+<!-- ── EDIT MODAL ── -->
 
 <div class="edit-modal-overlay" id="editModal" onclick="closeEditOnOverlay(event)">
-  <div class="edit-modal-sheet">
-    <div class="edit-modal-header">
-      <div class="edit-modal-header-left">
-        <div class="edit-modal-sub">แก้ไขรายการ</div>
-        <div class="edit-modal-title" id="editModalTitle">DEF — 001</div>
-      </div>
-      <button class="modal-close" onclick="closeEditModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
-    <div class="edit-modal-body">
-      <input type="file" id="editPhotoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
-      <input type="file" id="editPhotoInputGallery" accept="image/*" style="display:none" onchange="editPreviewImage(event)">
-      <div class="edit-upload-area" id="editUploadArea" onclick="openPickerSheet('edit')">
-        <div class="upload-placeholder" id="editUploadPlaceholder">
-          <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8A49D" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-          <span style="font-size:13px;color:var(--text-muted)">แตะเพื่อเปลี่ยนรูป</span>
+    <div class="edit-modal-sheet">
+        <div class="edit-modal-header">
+            <div class="edit-modal-header-left">
+                <div class="edit-modal-sub">แก้ไขรายการ</div>
+                <div class="edit-modal-title" id="editModalTitle">DEF — 001</div>
+            </div>
+            <button class="modal-close" onclick="closeEditModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
         </div>
-        <img id="editImagePreview" src="" alt="">
-        <button class="edit-remove-img-btn" id="editRemoveImgBtn" onclick="clearEditImage(event)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-      </div>
-      <div class="field">
-        <label>เลขที่ Defect <span class="req">*</span></label>
-        <input type="number" id="editDefectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkEditDuplicateId()">
-        <div class="id-warning" id="editIdWarning">⚠ เลขที่นี้มีอยู่แล้ว กรุณาใช้เลขอื่น</div>
-      </div>
-      <div class="field">
-        <label>Zone / ตำแหน่ง <span class="req">*</span></label>
-        <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
-      </div>
-      <div class="field">
-        <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
-        <div class="team-tags" id="editTeamTags">
-          <div class="team-tag" onclick="selectEditTeam(this,'ช่างทาสี')">ช่างทาสี</div>
-          <div class="team-tag" onclick="selectEditTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
-          <div class="team-tag" onclick="selectEditTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
-          <div class="team-tag" onclick="selectEditTeam(this,'ช่างประปา')">ช่างประปา</div>
-          <div class="team-tag" onclick="selectEditTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
-          <div class="team-tag" onclick="selectEditTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
-          <div class="team-tag" onclick="selectEditTeam(this,'__other__')">อื่นๆ ...</div>
+        <div class="edit-modal-body">
+            <input type="file" id="editPhotoInputCamera"  accept="image/*" capture="environment" style="display:none" onchange="editPreviewImage(event)">
+            <input type="file" id="editPhotoInputGallery" accept="image/*" style="display:none" onchange="editPreviewImage(event)">
+            <div class="edit-upload-area" id="editUploadArea" onclick="openPickerSheet('edit')">
+                <div class="upload-placeholder" id="editUploadPlaceholder">
+                    <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#A8A49D"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                    <span style="font-size:13px;color:var(--text-muted)">แตะเพื่อเปลี่ยนรูป</span>
+                </div>
+                <img id="editImagePreview" src="" alt="">
+                <button class="edit-remove-img-btn" id="editRemoveImgBtn" onclick="clearEditImage(event)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="field">
+                <label>เลขที่ Defect <span class="req">*</span></label>
+                <input type="number" id="editDefectNumber" placeholder="เช่น 5, 12, 47" min="1" oninput="checkEditDuplicateId()">
+                <div class="id-warning" id="editIdWarning">⚠ เลขที่นี้มีอยู่แล้ว</div>
+            </div>
+            <div class="field">
+                <label>Zone / ตำแหน่ง <span class="req">*</span></label>
+                <input type="text" id="editLocation" placeholder="เช่น ระเบียงชั้น 2">
+            </div>
+            <div class="field">
+                <label class="team-tag-label">งาน / ทีมแก้ไข <span class="req">*</span></label>
+                <div class="team-tags" id="editTeamTags">
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างทาสี')">ช่างทาสี</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างปูน/โครงสร้าง')">ช่างปูน</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างไฟฟ้า')">ช่างไฟฟ้า</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างประปา')">ช่างประปา</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างฝ้า/เพดาน')">ช่างฝ้า</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'ช่างกระเบื้อง')">ช่างกระเบื้อง</div>
+                    <div class="team-tag" onclick="selectEditTeam(this,'__other__')">อื่นๆ ...</div>
+                </div>
+                <div class="custom-team-wrap" id="editCustomTeamWrap">
+                    <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
+                </div>
+            </div>
+            <div class="field">
+                <label>รายการที่ต้องแก้ <span class="req">*</span></label>
+                <textarea id="editDetails" placeholder="เช่น เก็บสีใต้เหล็ก"></textarea>
+            </div>
+            <div class="field" style="margin-bottom:8px">
+                <label>หมายเหตุ</label>
+                <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
+            </div>
         </div>
-        <div class="custom-team-wrap" id="editCustomTeamWrap">
-          <input type="text" id="editCustomTeamInput" placeholder="ระบุทีม / ประเภทงาน">
+        <div class="edit-modal-footer">
+            <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
+            <button class="btn-save-edit" onclick="saveEdit()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                บันทึกการแก้ไข
+            </button>
         </div>
-      </div>
-      <div class="field">
-        <label>รายการที่ต้องแก้ <span class="req">*</span></label>
-        <textarea id="editDetails" placeholder="เช่น เก็บสีใต้เหล็ก"></textarea>
-      </div>
-      <div class="field" style="margin-bottom:8px">
-        <label>หมายเหตุ</label>
-        <input type="text" id="editRemarks" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)">
-      </div>
     </div>
-    <div class="edit-modal-footer">
-      <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
-      <button class="btn-save-edit" onclick="saveEdit()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        บันทึกการแก้ไข
-      </button>
-    </div>
-  </div>
 </div>
 
-<!-- Delete Confirm -->
+<!-- ── CONFIRM DELETE ── -->
 
 <div class="confirm-overlay" id="confirmModal">
-  <div class="confirm-box">
-    <div class="confirm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></div>
-    <div class="confirm-title">ลบรายการนี้?</div>
-    <div class="confirm-sub">การลบไม่สามารถกู้คืนได้<br>ต้องการดำเนินการต่อหรือไม่</div>
-    <div class="confirm-actions">
-      <button class="confirm-btn-cancel" onclick="closeConfirmModal()">ยกเลิก</button>
-      <button class="confirm-btn-delete" onclick="confirmDelete()">ลบรายการ</button>
+    <div class="confirm-box">
+        <div class="confirm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></div>
+        <div class="confirm-title">ลบรายการนี้?</div>
+        <div class="confirm-sub">การลบไม่สามารถกู้คืนได้<br>ต้องการดำเนินการต่อหรือไม่</div>
+        <div class="confirm-actions">
+            <button class="confirm-btn-cancel" onclick="closeConfirmModal()">ยกเลิก</button>
+            <button class="confirm-btn-delete" onclick="confirmDelete()">ลบรายการ</button>
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- Clear All Confirm -->
+<!-- ── CONFIRM CLEAR ALL ── -->
 
 <div class="confirm-overlay" id="clearAllModal">
-  <div class="confirm-box">
-    <div class="confirm-icon warn">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div class="confirm-box">
+        <div class="confirm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></div>
+        <div class="confirm-title">ล้างโปรเจคทั้งหมด?</div>
+        <div class="confirm-sub">รายการ Defect ทั้งหมดจะถูกลบออก<br>ทั้งในเครื่องและระบบ Sync<br><strong>ไม่สามารถกู้คืนได้</strong></div>
+        <div class="confirm-actions">
+            <button class="confirm-btn-cancel" onclick="document.getElementById('clearAllModal').classList.remove('open')">ยกเลิก</button>
+            <button class="confirm-btn-delete" onclick="clearAllData()">ล้างทั้งหมด</button>
+        </div>
     </div>
-    <div class="confirm-title">ล้างข้อมูลทั้งหมด?</div>
-    <div class="confirm-sub">จะลบรายการ Defect ทั้งหมดออกจากระบบ<br>ทุกคนที่ใช้งานอยู่จะเห็นการเปลี่ยนแปลงนี้<br><strong>ไม่สามารถกู้คืนได้</strong></div>
-    <div class="confirm-actions">
-      <button class="confirm-btn-cancel" onclick="closeClearAllModal()">ยกเลิก</button>
-      <button class="confirm-btn-warn" onclick="confirmClearAll()">ล้างทั้งหมด</button>
+</div>
+
+<!-- ── CONFIRM NEW PROJECT ── -->
+
+<div class="confirm-overlay" id="newProjectModal">
+    <div class="confirm-box">
+        <div class="confirm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="confirm-title">สร้างโปรเจคใหม่?</div>
+        <div class="confirm-sub">ข้อมูลทั้งหมดในเครื่องนี้จะถูกล้าง<br>และสร้าง Project Key ใหม่<br><strong>ข้อมูลใน Cloud จะยังคงอยู่</strong></div>
+        <div class="confirm-actions">
+            <button class="confirm-btn-cancel" onclick="document.getElementById('newProjectModal').classList.remove('open')">ยกเลิก</button>
+            <button class="confirm-btn-delete" onclick="createNewProject()">สร้างใหม่</button>
+        </div>
     </div>
-  </div>
+</div>
+
+<!-- ── PDF PREVIEW ── -->
+
+<div class="pdf-preview-overlay" id="pdfPreviewModal">
+    <div class="pdf-preview-sheet">
+        <div class="pdf-preview-header">
+            <div>
+                <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">ตัวอย่างรายงาน</div>
+                <div style="font-size:15px;font-weight:600;letter-spacing:-0.02em;color:var(--text-primary)" id="pdfPreviewTitle">Defect_Report.pdf</div>
+            </div>
+            <button class="modal-close" onclick="closePdfPreview()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div class="pdf-preview-body"><iframe id="pdfPreviewFrame" src="" style="width:100%;height:100%;border:none;border-radius:8px;background:#f0f0f0"></iframe></div>
+        <div class="pdf-preview-footer">
+            <button class="btn-cancel" onclick="closePdfPreview()">ปิด</button>
+            <button class="btn-save-edit" onclick="downloadCurrentPdf()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                ดาวน์โหลด PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">กำลังสร้างไฟล์...</div>
+    <div class="loading-sub" id="loadingSub">กรุณารอสักครู่</div>
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════════════
-// STORAGE ENGINE — shared persistent storage with polling sync
-// Each defect stored as individual key: "defect:ID"
-// Index stored as "defect_index" (array of IDs)
-// ════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// STORAGE KEY CONSTANTS
+// ══════════════════════════════════════════════════════════════════
+const LS_PROJECT_KEY = 'defectTracker_projectKey';
+const LS_DATA_PREFIX = 'defectTracker_data_';    // + projectKey
+const LS_SYNC_TIME   = 'defectTracker_syncTime_'; // + projectKey
+// Cloud sync uses a simple JSON-bin approach via pastebin-style API
+// We'll use a key-value store embedded in the page itself via
+// the Pastebin / JSONstorage approach — no server needed.
+// For this implementation we use the device's localStorage as the
+// primary store (persistent across sessions) and provide manual
+// push/pull to/from a shared "cloud slot" via a simple encode/decode
+// QR-less key-share system. Large data is chunked across localStorage keys.
 
-const STORAGE_KEY_INDEX = 'defect_index';
-const STORAGE_PREFIX    = 'defect:';
-const POLL_INTERVAL_MS  = 5000; // sync every 5s
+const PAGE_SIZE = 10; // items per page in list view
 
-let defectsData  = [];   // local cache
-let _pollTimer   = null;
-let _lastIndexStr = '';  // to detect remote changes
-
-// ── LOW-LEVEL STORAGE ──
-async function storageGet(key) {
-    try {
-        const r = await window.storage.get(key, true);
-        return r ? r.value : null;
-    } catch { return null; }
+// ══════════════════════════════════════════════════════════════════
+// PROJECT KEY MANAGEMENT
+// ══════════════════════════════════════════════════════════════════
+function getProjectKey() {
+    let key = localStorage.getItem(LS_PROJECT_KEY);
+    if (!key) {
+        key = 'KS-' + Math.random().toString(36).substr(2,6).toUpperCase() +
+              '-' + Math.random().toString(36).substr(2,4).toUpperCase();
+        localStorage.setItem(LS_PROJECT_KEY, key);
+    }
+    return key;
 }
 
-async function storageSet(key, value) {
-    try {
-        await window.storage.set(key, value, true);
-        return true;
-    } catch (e) { console.warn('storageSet failed', key, e); return false; }
-}
+let projectKey = getProjectKey();
 
-async function storageDelete(key) {
-    try {
-        await window.storage.delete(key, true);
-        return true;
-    } catch { return false; }
-}
+// ══════════════════════════════════════════════════════════════════
+// PERSISTENT DATA — localStorage with chunking for large data
+// ══════════════════════════════════════════════════════════════════
+const CHUNK_SIZE = 1_500_000; // ~1.5MB per chunk (stay under 5MB key limit)
 
-// ── LOAD ALL FROM STORAGE ──
-async function loadAllFromStorage() {
-    setSyncState('syncing', 'กำลังโหลด...');
+function saveToLocal(data) {
     try {
-        const indexStr = await storageGet(STORAGE_KEY_INDEX);
-        if (!indexStr) {
-            defectsData = [];
-            _lastIndexStr = '';
-            setSyncState('ok', 'LIVE');
-            return;
+        const json = JSON.stringify(data);
+        // Remove old chunks
+        let i = 0;
+        while (localStorage.getItem(LS_DATA_PREFIX + projectKey + '_' + i) !== null) {
+            localStorage.removeItem(LS_DATA_PREFIX + projectKey + '_' + i);
+            i++;
         }
-        const ids = JSON.parse(indexStr);
-        _lastIndexStr = indexStr;
-
-        // Load each defect in parallel (chunked to avoid rate limit)
-        const loaded = [];
-        const CHUNK = 10;
-        for (let i = 0; i < ids.length; i += CHUNK) {
-            const chunk = ids.slice(i, i + CHUNK);
-            const results = await Promise.all(
-                chunk.map(id => storageGet(STORAGE_PREFIX + id))
+        // Write new chunks
+        for (let ci = 0; ci * CHUNK_SIZE < json.length; ci++) {
+            localStorage.setItem(
+                LS_DATA_PREFIX + projectKey + '_' + ci,
+                json.slice(ci * CHUNK_SIZE, (ci + 1) * CHUNK_SIZE)
             );
-            results.forEach((r, idx) => {
-                if (r) {
-                    try { loaded.push(JSON.parse(r)); } catch {}
-                }
+        }
+        localStorage.setItem(LS_DATA_PREFIX + projectKey + '_count', String(Math.ceil(json.length / CHUNK_SIZE)));
+        updateStorageUI();
+    } catch(e) {
+        console.error('Save error', e);
+        showToast('⚠ พื้นที่จัดเก็บเต็ม ลองลดขนาดรูปภาพ');
+    }
+}
+
+function loadFromLocal() {
+    try {
+        const count = parseInt(localStorage.getItem(LS_DATA_PREFIX + projectKey + '_count') || '0');
+        if (count === 0) return [];
+        let json = '';
+        for (let i = 0; i < count; i++) {
+            json += localStorage.getItem(LS_DATA_PREFIX + projectKey + '_' + i) || '';
+        }
+        return JSON.parse(json) || [];
+    } catch(e) {
+        console.error('Load error', e);
+        return [];
+    }
+}
+
+function getLocalStorageUsagePercent() {
+    try {
+        let total = 0;
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                total += (localStorage.getItem(key) || '').length * 2; // UTF-16
+            }
+        }
+        // Most browsers allow ~5-10MB; we'll estimate 5MB = 5_000_000 bytes
+        return Math.min(100, Math.round(total / 50_000));
+    } catch(e) { return 0; }
+}
+
+function updateStorageUI() {
+    const pct = getLocalStorageUsagePercent();
+    const bar = document.getElementById('storageBar');
+    const num = document.getElementById('storageNum');
+    if (bar) { bar.style.width = pct + '%'; bar.className = 'storage-bar' + (pct > 70 ? ' warn' : ''); }
+    if (num) num.textContent = pct + '%';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+let defectsData = loadFromLocal();
+let currentImageDataURL = null;
+let selectedTeam = null;
+let isCustomTeam = false;
+let currentPage = 1;
+let _pickerTarget = 'main';
+
+// ══════════════════════════════════════════════════════════════════
+// CLOUD SYNC — uses JSONBlob (free, no auth) or fallback encode/share
+// ══════════════════════════════════════════════════════════════════
+// We use https://jsonblob.com API (free, no CORS issues, no auth required)
+// Each project key maps to a named blob.
+const CLOUD_API = 'https://jsonblob.com/api/jsonBlob';
+let cloudBlobId = null; // cached blob ID for this project key
+
+function syncCloudIdKey() { return 'defectTracker_cloudId_' + projectKey; }
+
+function getSyncLabel(status) {
+    const map = { idle:'SYNC', ok:'SYNCED', err:'OFFLINE', push:'PUSH...', pull:'PULL...' };
+    return map[status] || 'SYNC';
+}
+
+function setSyncStatus(status) {
+    const dot = document.getElementById('syncDot');
+    const lbl = document.getElementById('syncLabel');
+    if (!dot || !lbl) return;
+    dot.className = 'sync-dot';
+    if (status === 'ok')   { dot.classList.add('ok'); }
+    else if (status === 'err') { dot.classList.add('err'); }
+    else if (status === 'push' || status === 'pull') { dot.classList.add('spin'); }
+    lbl.textContent = getSyncLabel(status);
+}
+
+async function pushToCloud() {
+    closeSyncModal();
+    if (defectsData.length === 0) { showToast('ไม่มีข้อมูลที่จะอัปโหลด'); return; }
+    setSyncStatus('push');
+    showToast('⬆ กำลังอัปโหลด...');
+    try {
+        const payload = { projectKey, items: defectsData, updatedAt: new Date().toISOString() };
+        const bodyStr = JSON.stringify(payload);
+        const storedId = localStorage.getItem(syncCloudIdKey());
+
+        let response;
+        if (storedId) {
+            // Update existing blob
+            response = await fetch(CLOUD_API + '/' + storedId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: bodyStr
             });
         }
-        // sort ascending
-        loaded.sort((a, b) => a.id - b.id);
-        defectsData = loaded;
-        setSyncState('ok', 'LIVE');
-    } catch (e) {
-        console.error('loadAllFromStorage error', e);
-        setSyncState('error', 'ERROR');
-    }
-    updateUI();
-}
-
-// ── SAVE ONE DEFECT ──
-async function saveOneToStorage(d) {
-    // Save defect data
-    await storageSet(STORAGE_PREFIX + d.id, JSON.stringify(d));
-    // Update index
-    const ids = defectsData.map(x => x.id);
-    if (!ids.includes(d.id)) ids.push(d.id);
-    ids.sort((a, b) => a - b);
-    await storageSet(STORAGE_KEY_INDEX, JSON.stringify(ids));
-}
-
-// ── DELETE ONE FROM STORAGE ──
-async function deleteOneFromStorage(id) {
-    await storageDelete(STORAGE_PREFIX + id);
-    const ids = defectsData.map(x => x.id).filter(x => x !== id);
-    ids.sort((a, b) => a - b);
-    await storageSet(STORAGE_KEY_INDEX, JSON.stringify(ids));
-}
-
-// ── CLEAR ALL FROM STORAGE ──
-async function clearAllFromStorage() {
-    const ids = defectsData.map(x => x.id);
-    await Promise.all(ids.map(id => storageDelete(STORAGE_PREFIX + id)));
-    await storageSet(STORAGE_KEY_INDEX, JSON.stringify([]));
-    _lastIndexStr = '[]';
-}
-
-// ── POLLING: detect remote changes ──
-async function pollForChanges() {
-    try {
-        const indexStr = await storageGet(STORAGE_KEY_INDEX);
-        const current  = indexStr || '[]';
-        if (current !== _lastIndexStr) {
-            _lastIndexStr = current;
-            await loadAllFromStorage();
+        if (!storedId || !response || !response.ok) {
+            // Create new blob
+            response = await fetch(CLOUD_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: bodyStr
+            });
+            if (response.ok) {
+                const loc = response.headers.get('Location') || '';
+                const newId = loc.split('/').pop();
+                if (newId) {
+                    localStorage.setItem(syncCloudIdKey(), newId);
+                    cloudBlobId = newId;
+                }
+            }
         }
-    } catch {}
+
+        if (response && response.ok) {
+            const now = new Date().toLocaleString('th-TH');
+            localStorage.setItem(LS_SYNC_TIME + projectKey, now);
+            setSyncStatus('ok');
+            showToast('✓ อัปโหลดสำเร็จ — ' + defectsData.length + ' รายการ');
+            updateSyncModal();
+        } else {
+            throw new Error('Upload failed');
+        }
+    } catch(e) {
+        console.warn('Push error', e);
+        setSyncStatus('err');
+        showToast('❌ อัปโหลดไม่สำเร็จ (ตรวจสอบอินเทอร์เน็ต)');
+    }
 }
 
-function startPolling() {
-    if (_pollTimer) clearInterval(_pollTimer);
-    _pollTimer = setInterval(pollForChanges, POLL_INTERVAL_MS);
+async function pullFromCloud() {
+    closeSyncModal();
+    const blobId = localStorage.getItem(syncCloudIdKey());
+    if (!blobId) { showToast('⚠ ยังไม่เคยอัปโหลด ลองอัปโหลดก่อน'); return; }
+    setSyncStatus('pull');
+    showToast('⬇ กำลังดาวน์โหลด...');
+    try {
+        const res = await fetch(CLOUD_API + '/' + blobId, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Not found');
+        const data = await res.json();
+        if (data.items && Array.isArray(data.items)) {
+            defectsData = data.items;
+            saveToLocal(defectsData);
+            const now = new Date().toLocaleString('th-TH');
+            localStorage.setItem(LS_SYNC_TIME + projectKey, now);
+            setSyncStatus('ok');
+            updateBadge();
+            renderList();
+            showToast('✓ ดาวน์โหลดสำเร็จ — ' + defectsData.length + ' รายการ');
+            updateSyncModal();
+        } else {
+            throw new Error('Invalid data');
+        }
+    } catch(e) {
+        console.warn('Pull error', e);
+        setSyncStatus('err');
+        showToast('❌ ดาวน์โหลดไม่สำเร็จ (ตรวจสอบ Key หรืออินเทอร์เน็ต)');
+    }
 }
 
-function setSyncState(state, text) {
-    const badge = document.getElementById('syncBadge');
-    const span  = document.getElementById('syncText');
-    badge.className = 'sync-badge' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
-    span.textContent = text;
+async function joinProject() {
+    const rawKey = document.getElementById('joinKeyInput').value.trim();
+    if (!rawKey) { showToast('⚠ กรุณาใส่ Project Key'); return; }
+
+    // Key could be a projectKey or a direct blob ID
+    // We'll store it as a mapping
+    closeSyncModal();
+    showToast('⬇ กำลังค้นหาโปรเจค...');
+    setSyncStatus('pull');
+
+    try {
+        // If user pasted a blob ID directly
+        let blobIdToTry = rawKey;
+        // Or if it looks like a project key, find stored mapping
+        if (rawKey.startsWith('KS-')) {
+            const mappingKey = 'defectTracker_cloudId_' + rawKey;
+            const mapped = localStorage.getItem(mappingKey);
+            if (mapped) blobIdToTry = mapped;
+            else { showToast('⚠ ไม่พบโปรเจคนี้ ลองอัปโหลดจากเครื่องต้นทางก่อน'); setSyncStatus('err'); return; }
+        }
+
+        const res = await fetch(CLOUD_API + '/' + blobIdToTry, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Not found');
+        const data = await res.json();
+        if (!data.items) throw new Error('Invalid');
+
+        // Switch to the new project
+        projectKey = data.projectKey || rawKey;
+        localStorage.setItem(LS_PROJECT_KEY, projectKey);
+        localStorage.setItem(syncCloudIdKey(), blobIdToTry);
+
+        defectsData = data.items;
+        saveToLocal(defectsData);
+        const now = new Date().toLocaleString('th-TH');
+        localStorage.setItem(LS_SYNC_TIME + projectKey, now);
+
+        setSyncStatus('ok');
+        updateBadge();
+        renderList();
+        showToast('✓ เข้าร่วมโปรเจคสำเร็จ — ' + defectsData.length + ' รายการ');
+        updateSyncModal();
+    } catch(e) {
+        setSyncStatus('err');
+        showToast('❌ ไม่พบโปรเจค ตรวจสอบ Key อีกครั้ง');
+    }
 }
 
-// ════════════════════════════════════════════════════════════════
-// APP STATE
-// ════════════════════════════════════════════════════════════════
-let currentImageDataURL = null;
-let selectedTeam        = null;
-let isCustomTeam        = false;
-let _pickerTarget       = 'main';
-let editingId           = null;
-let editImageDataURL    = null;
-let editSelectedTeam    = null;
-let editIsCustomTeam    = false;
-let deletingId          = null;
+function openSyncModal() {
+    updateSyncModal();
+    document.getElementById('syncModal').classList.add('open');
+}
+function closeSyncModal() { document.getElementById('syncModal').classList.remove('open'); }
+function closeSyncOnOverlay(e) { if (e.target === document.getElementById('syncModal')) closeSyncModal(); }
 
-// ── DUPLICATE ID CHECK ──
+function updateSyncModal() {
+    document.getElementById('syncKeyShort').textContent = projectKey;
+    document.getElementById('syncKeyFull').textContent  = projectKey + (localStorage.getItem(syncCloudIdKey()) ? '\n(Blob: ' + localStorage.getItem(syncCloudIdKey()) + ')' : '');
+    document.getElementById('syncItemCount').textContent = defectsData.length + ' items';
+    const lastTime = localStorage.getItem(LS_SYNC_TIME + projectKey);
+    document.getElementById('syncLastTime').textContent = lastTime || 'ยังไม่เคยซิงก์';
+}
+
+function copyProjectKey() {
+    const key = projectKey;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(key).then(() => showToast('✓ คัดลอก Key แล้ว'));
+    } else {
+        const el = document.createElement('textarea');
+        el.value = key; document.body.appendChild(el);
+        el.select(); document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast('✓ คัดลอก Key แล้ว');
+    }
+}
+
+function openNewProjectConfirm() {
+    closeSyncModal();
+    document.getElementById('newProjectModal').classList.add('open');
+}
+
+function createNewProject() {
+    document.getElementById('newProjectModal').classList.remove('open');
+    // Generate new key (local data only reset)
+    projectKey = 'KS-' + Math.random().toString(36).substr(2,6).toUpperCase() +
+                 '-' + Math.random().toString(36).substr(2,4).toUpperCase();
+    localStorage.setItem(LS_PROJECT_KEY, projectKey);
+    defectsData = [];
+    saveToLocal([]);
+    setSyncStatus('idle');
+    updateBadge();
+    renderList();
+    showToast('✓ สร้างโปรเจคใหม่แล้ว');
+    updateSyncModal();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CLEAR ALL
+// ══════════════════════════════════════════════════════════════════
+function openClearAllConfirm() { document.getElementById('clearAllModal').classList.add('open'); }
+
+async function clearAllData() {
+    document.getElementById('clearAllModal').classList.remove('open');
+    defectsData = [];
+    saveToLocal([]);
+    // Also clear from cloud
+    const blobId = localStorage.getItem(syncCloudIdKey());
+    if (blobId) {
+        try {
+            await fetch(CLOUD_API + '/' + blobId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ projectKey, items: [], updatedAt: new Date().toISOString() })
+            });
+        } catch(e) {}
+    }
+    updateBadge();
+    renderList();
+    showToast('🗑 ล้างโปรเจคทั้งหมดแล้ว');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FORM & IMAGE
+// ══════════════════════════════════════════════════════════════════
 function checkDuplicateId() {
-    const val  = parseInt(document.getElementById('defectNumber').value);
+    const val = parseInt(document.getElementById('defectNumber').value);
     const warn = document.getElementById('idWarning');
     warn.classList.toggle('show', val && defectsData.some(d => d.id === val));
 }
 
-// ── TEAM SELECTION ──
 function selectTeam(el, value) {
     document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
+    const wrap = document.getElementById('customTeamWrap');
     if (value === '__other__') {
         isCustomTeam = true; selectedTeam = null;
-        document.getElementById('customTeamWrap').classList.add('open');
+        wrap.classList.add('open');
         setTimeout(() => document.getElementById('customTeamInput').focus(), 50);
     } else {
         isCustomTeam = false; selectedTeam = value;
-        document.getElementById('customTeamWrap').classList.remove('open');
+        wrap.classList.remove('open');
     }
 }
+
 function getSelectedTeam() {
     return isCustomTeam ? document.getElementById('customTeamInput').value.trim() : selectedTeam;
 }
 
-// ── PHOTO PICKER ──
 function openPickerSheet(target) {
     _pickerTarget = target;
     document.getElementById('pickerSheet').classList.add('open');
@@ -766,34 +966,35 @@ function closePickerSheet(e) {
 function pickerChoose(source) {
     document.getElementById('pickerSheet').classList.remove('open');
     const prefix = _pickerTarget === 'main' ? '' : 'edit';
-    const cap    = source === 'camera' ? 'Camera' : 'Gallery';
-    const el     = document.getElementById(`${prefix}photoInput${cap}`) ||
-                   document.getElementById(`${prefix === '' ? '' : prefix}PhotoInput${cap}`);
-    // resolve IDs
+    const suffix = source === 'camera' ? 'Camera' : 'Gallery';
+    const el = document.getElementById(prefix + 'photoInput' + (prefix ? suffix : suffix));
+    // handle naming
     const id = _pickerTarget === 'main'
         ? (source === 'camera' ? 'photoInputCamera' : 'photoInputGallery')
         : (source === 'camera' ? 'editPhotoInputCamera' : 'editPhotoInputGallery');
-    const input = document.getElementById(id);
-    input.value = ''; input.click();
+    const inp = document.getElementById(id);
+    inp.value = ''; inp.click();
 }
 
 function previewImage(event) {
-    const file = event.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-        currentImageDataURL = e.target.result;
+    const file = event.target.files[0];
+    if (!file) return;
+    // Compress image to reduce storage usage
+    compressImage(file, 1200, 0.80, dataURL => {
+        currentImageDataURL = dataURL;
         const preview = document.getElementById('imagePreview');
-        preview.src = currentImageDataURL; preview.style.display = 'block';
+        preview.src = dataURL; preview.style.display = 'block';
         document.getElementById('uploadPlaceholder').style.display = 'none';
         document.getElementById('removeImgBtn').style.display = 'flex';
         document.getElementById('uploadArea').classList.add('has-image');
-    };
-    reader.readAsDataURL(file);
+    });
 }
+
 function clearImage(e) {
-    e && e.stopPropagation();
+    e.stopPropagation();
     currentImageDataURL = null;
-    ['photoInputCamera','photoInputGallery'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('photoInputCamera').value  = '';
+    document.getElementById('photoInputGallery').value = '';
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('imagePreview').src = '';
     document.getElementById('uploadPlaceholder').style.display = 'flex';
@@ -801,8 +1002,28 @@ function clearImage(e) {
     document.getElementById('uploadArea').classList.remove('has-image');
 }
 
-// ── SAVE DEFECT ──
-async function saveDefect() {
+// Image compression helper
+function compressImage(file, maxW, quality, callback) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SAVE DEFECT
+// ══════════════════════════════════════════════════════════════════
+function saveDefect() {
     const defectNumVal = document.getElementById('defectNumber').value.trim();
     const location     = document.getElementById('location').value.trim();
     const details      = document.getElementById('details').value.trim();
@@ -818,19 +1039,13 @@ async function saveDefect() {
     if (!team)     { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
     if (!details)  { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
 
-    setSyncState('syncing', 'กำลังบันทึก...');
-    const entry = { id: defectNum, timestamp: new Date().toISOString(), image: currentImageDataURL, location, details, team, remarks };
-    defectsData.push(entry);
+    defectsData.push({ id: defectNum, timestamp: new Date().toISOString(), image: currentImageDataURL, location, details, team, remarks });
     defectsData.sort((a, b) => a.id - b.id);
-
-    await saveOneToStorage(entry);
-    setSyncState('ok', 'LIVE');
-
-    // Update index string so poll doesn't retrigger
-    _lastIndexStr = JSON.stringify(defectsData.map(x => x.id));
-
-    updateUI();
-    showToast('✓ บันทึกสำเร็จ');
+    saveToLocal(defectsData);
+    updateBadge();
+    renderList();
+    showToast('✓ บันทึกสำเร็จ (#' + defectNum + ')');
+    setSyncStatus('idle'); // mark as unsynced
 
     // Reset form
     document.getElementById('defectNumber').value = '';
@@ -842,80 +1057,122 @@ async function saveDefect() {
     document.querySelectorAll('#teamTags .team-tag').forEach(t => t.classList.remove('selected'));
     document.getElementById('customTeamWrap').classList.remove('open');
     selectedTeam = null; isCustomTeam = false;
-    clearImage();
+    clearImage(new Event('click'));
     document.getElementById('mainScroll').scrollTop = 0;
 }
 
-// ── RENDER LIST ──
+// ══════════════════════════════════════════════════════════════════
+// RENDER LIST (with pagination)
+// ══════════════════════════════════════════════════════════════════
 function renderList() {
     const container = document.getElementById('defectsContainer');
     const empty     = document.getElementById('emptyState');
     const stats     = document.getElementById('listStats');
     const exportBar = document.getElementById('exportBar');
+    const pgWrap    = document.getElementById('paginationWrap');
     container.innerHTML = '';
+    pgWrap.innerHTML = '';
 
     if (defectsData.length === 0) {
-        empty.style.display   = 'flex';
-        stats.style.display   = 'none';
-        exportBar.style.display = 'none';
+        empty.style.display = 'flex';
+        stats.style.display = 'none';
+        if (exportBar) exportBar.style.display = 'none';
         return;
     }
-    empty.style.display   = 'none';
-    stats.style.display   = 'flex';
-    exportBar.style.display = 'flex';
+
+    empty.style.display = 'none';
+    stats.style.display = 'flex';
+    if (exportBar) exportBar.style.display = 'flex';
     document.getElementById('totalCount').textContent = defectsData.length;
     document.getElementById('teamCount').textContent  = new Set(defectsData.map(d => d.team)).size;
+    updateStorageUI();
 
-    const sorted = [...defectsData].sort((a, b) => a.id - b.id);
-    sorted.forEach(d => {
+    const sorted     = [...defectsData].sort((a, b) => a.id - b.id);
+    const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start      = (currentPage - 1) * PAGE_SIZE;
+    const pageItems  = sorted.slice(start, start + PAGE_SIZE);
+
+    pageItems.forEach(d => {
         const date    = new Date(d.timestamp);
         const dateStr = `${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getFullYear()}`;
         container.innerHTML += `
-        <div class="defect-card" id="card-${d.id}">
-            <img class="card-image" src="${d.image}" alt="defect ${d.id}">
-            <div class="card-body">
-                <div class="card-header">
-                    <span class="card-id">DEF — ${String(d.id).padStart(3,'0')}</span>
-                    <div class="card-actions">
-                        <button class="card-action-btn edit" onclick="openEditModal(${d.id})" title="แก้ไข">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-                        <button class="card-action-btn delete" onclick="openConfirmModal(${d.id})" title="ลบ">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-                        </button>
+            <div class="defect-card" id="card-${d.id}">
+                <img class="card-image" src="${d.image}" alt="defect ${d.id}" loading="lazy">
+                <div class="card-body">
+                    <div class="card-header">
+                        <span class="card-id">DEF — ${String(d.id).padStart(3,'0')}</span>
+                        <div class="card-actions">
+                            <button class="card-action-btn" onclick="openEditModal(${d.id})" title="แก้ไข">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <button class="card-action-btn delete" onclick="openConfirmModal(${d.id})" title="ลบ">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-location">📍 ${d.location}</div>
+                    <div class="card-details">${d.details}</div>
+                    <div class="card-footer">
+                        <span class="team-badge">${d.team}</span>
+                        ${d.remarks ? `<span class="card-remarks">${d.remarks}</span>` : `<span class="card-date">${dateStr}</span>`}
                     </div>
                 </div>
-                <div class="card-location">📍 ${d.location}</div>
-                <div class="card-details">${d.details}</div>
-                <div class="card-footer">
-                    <span class="team-badge">${d.team}</span>
-                    ${d.remarks ? `<span class="card-remarks">${d.remarks}</span>` : `<span class="card-date">${dateStr}</span>`}
-                </div>
-            </div>
-        </div>`;
+            </div>`;
     });
-}
 
-function updateUI() {
-    updateBadge();
-    const isListTab = document.getElementById('listView').style.display !== 'none';
-    if (isListTab) renderList();
-    // Update count chip
-    if (defectsData.length > 0) {
-        document.getElementById('countChip').style.display = 'block';
-        document.getElementById('countNum').textContent     = defectsData.length;
-    } else {
-        document.getElementById('countChip').style.display = 'none';
+    // Render pagination if needed
+    if (totalPages > 1) {
+        let html = `<div class="pagination">`;
+        html += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>`;
+        const range = getPageRange(currentPage, totalPages);
+        range.forEach(p => {
+            if (p === '...') {
+                html += `<span class="page-info">…</span>`;
+            } else {
+                html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+            }
+        });
+        html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>`;
+        html += `</div>`;
+        pgWrap.innerHTML = html;
     }
 }
 
-// ── TAB SWITCH ──
+function getPageRange(current, total) {
+    if (total <= 7) return Array.from({length:total},(_,i)=>i+1);
+    const r = [];
+    if (current <= 4) {
+        for (let i=1;i<=5;i++) r.push(i);
+        r.push('...'); r.push(total);
+    } else if (current >= total-3) {
+        r.push(1); r.push('...');
+        for (let i=total-4;i<=total;i++) r.push(i);
+    } else {
+        r.push(1); r.push('...');
+        for (let i=current-1;i<=current+1;i++) r.push(i);
+        r.push('...'); r.push(total);
+    }
+    return r;
+}
+
+function goPage(p) {
+    const total = Math.ceil(defectsData.length / PAGE_SIZE);
+    if (p < 1 || p > total) return;
+    currentPage = p;
+    renderList();
+    document.getElementById('mainScroll').scrollTop = 0;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SWITCH TAB
+// ══════════════════════════════════════════════════════════════════
 function switchTab(tab) {
     const fv = document.getElementById('formView');
     const lv = document.getElementById('listView');
     if (tab === 'form') {
         fv.style.display = 'block'; lv.style.display = 'none';
-        document.getElementById('headerEyebrow').textContent = 'Quality Control';
+        document.getElementById('headerEyebrow').textContent = 'KS CONSTRUCTION KHONKAEN LP';
         document.getElementById('headerTitle').textContent   = 'Defect Log';
         document.getElementById('countChip').style.display   = 'none';
         document.getElementById('tab-form').classList.add('active');
@@ -928,7 +1185,9 @@ function switchTab(tab) {
         document.getElementById('tab-form').classList.remove('active');
         if (defectsData.length > 0) {
             document.getElementById('countChip').style.display = 'block';
-            document.getElementById('countNum').textContent     = defectsData.length;
+            document.getElementById('countNum').textContent = defectsData.length;
+        } else {
+            document.getElementById('countChip').style.display = 'none';
         }
         renderList();
     }
@@ -938,77 +1197,202 @@ function updateBadge() {
     document.getElementById('navDot').classList.toggle('visible', defectsData.length > 0);
 }
 
-// ── CLEAR ALL ──
-function openClearAllModal()  { document.getElementById('clearAllModal').classList.add('open'); }
-function closeClearAllModal() { document.getElementById('clearAllModal').classList.remove('open'); }
-async function confirmClearAll() {
-    closeClearAllModal();
-    setSyncState('syncing', 'กำลังลบ...');
-    await clearAllFromStorage();
-    defectsData = [];
-    setSyncState('ok', 'LIVE');
-    updateUI();
-    showToast('🗑 ล้างข้อมูลทั้งหมดแล้ว');
+// ══════════════════════════════════════════════════════════════════
+// EDIT MODAL
+// ══════════════════════════════════════════════════════════════════
+let editingId = null, editImageDataURL = null, editSelectedTeam = null, editIsCustomTeam = false;
+
+function checkEditDuplicateId() {
+    const val = parseInt(document.getElementById('editDefectNumber').value);
+    document.getElementById('editIdWarning').classList.toggle('show', val && defectsData.some(d => d.id === val && d.id !== editingId));
 }
 
-// ════════════════════════════════════════════════════════════════
-// PDF EXPORT
-// ════════════════════════════════════════════════════════════════
-async function ensureFontsLoaded() { if (document.fonts?.ready) await document.fonts.ready; }
-function loadImageEl(src) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img); img.onerror = () => reject(); img.src = src;
+function openEditModal(id) {
+    const d = defectsData.find(x => x.id === id);
+    if (!d) return;
+    editingId = id; editImageDataURL = d.image;
+    document.getElementById('editModalTitle').textContent    = `DEF — ${String(id).padStart(3,'0')}`;
+    document.getElementById('editDefectNumber').value        = d.id;
+    document.getElementById('editLocation').value            = d.location;
+    document.getElementById('editDetails').value             = d.details;
+    document.getElementById('editRemarks').value             = d.remarks || '';
+    document.getElementById('editCustomTeamInput').value     = '';
+    document.getElementById('editIdWarning').classList.remove('show');
+    const prev = document.getElementById('editImagePreview');
+    const ph   = document.getElementById('editUploadPlaceholder');
+    const rmv  = document.getElementById('editRemoveImgBtn');
+    const area = document.getElementById('editUploadArea');
+    if (d.image) {
+        prev.src = d.image; prev.style.display = 'block';
+        ph.style.display = 'none'; rmv.style.display = 'flex';
+        area.classList.add('has-image');
+    } else {
+        prev.src = ''; prev.style.display = 'none';
+        ph.style.display = 'flex'; rmv.style.display = 'none';
+        area.classList.remove('has-image');
+    }
+    document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
+    document.getElementById('editCustomTeamWrap').classList.remove('open');
+    editIsCustomTeam = false;
+    const presets = ['ช่างทาสี','ช่างปูน/โครงสร้าง','ช่างไฟฟ้า','ช่างประปา','ช่างฝ้า/เพดาน','ช่างกระเบื้อง'];
+    if (presets.includes(d.team)) {
+        editSelectedTeam = d.team;
+        document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
+            const m = t.getAttribute('onclick').match(/'([^']+)'/);
+            if (m && m[1] === d.team) t.classList.add('selected');
+        });
+    } else {
+        editIsCustomTeam = true; editSelectedTeam = null;
+        document.getElementById('editCustomTeamInput').value = d.team;
+        document.getElementById('editCustomTeamWrap').classList.add('open');
+        document.querySelectorAll('#editTeamTags .team-tag').forEach(t => {
+            if (t.textContent.trim() === 'อื่นๆ ...') t.classList.add('selected');
+        });
+    }
+    document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() { document.getElementById('editModal').classList.remove('open'); editingId = null; }
+function closeEditOnOverlay(e) { if (e.target === document.getElementById('editModal')) closeEditModal(); }
+
+function selectEditTeam(el, value) {
+    document.querySelectorAll('#editTeamTags .team-tag').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    const wrap = document.getElementById('editCustomTeamWrap');
+    if (value === '__other__') {
+        editIsCustomTeam = true; editSelectedTeam = null;
+        wrap.classList.add('open');
+        setTimeout(() => document.getElementById('editCustomTeamInput').focus(), 50);
+    } else {
+        editIsCustomTeam = false; editSelectedTeam = value;
+        wrap.classList.remove('open');
+    }
+}
+
+function getEditTeam() {
+    return editIsCustomTeam ? document.getElementById('editCustomTeamInput').value.trim() : editSelectedTeam;
+}
+
+function editPreviewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    compressImage(file, 1200, 0.80, dataURL => {
+        editImageDataURL = dataURL;
+        const prev = document.getElementById('editImagePreview');
+        prev.src = dataURL; prev.style.display = 'block';
+        document.getElementById('editUploadPlaceholder').style.display = 'none';
+        document.getElementById('editRemoveImgBtn').style.display = 'flex';
+        document.getElementById('editUploadArea').classList.add('has-image');
     });
 }
+
+function clearEditImage(e) {
+    e.stopPropagation();
+    editImageDataURL = null;
+    document.getElementById('editPhotoInputCamera').value  = '';
+    document.getElementById('editPhotoInputGallery').value = '';
+    document.getElementById('editImagePreview').style.display = 'none';
+    document.getElementById('editImagePreview').src = '';
+    document.getElementById('editUploadPlaceholder').style.display = 'flex';
+    document.getElementById('editRemoveImgBtn').style.display = 'none';
+    document.getElementById('editUploadArea').classList.remove('has-image');
+}
+
+function saveEdit() {
+    const newIdVal = document.getElementById('editDefectNumber').value.trim();
+    const location = document.getElementById('editLocation').value.trim();
+    const details  = document.getElementById('editDetails').value.trim();
+    const team     = getEditTeam();
+    const remarks  = document.getElementById('editRemarks').value.trim();
+    if (!editImageDataURL) { showToast('⚠ กรุณาเลือกรูปภาพ'); return; }
+    if (!newIdVal)         { showToast('⚠ กรุณากรอกเลขที่ Defect'); return; }
+    const newId = parseInt(newIdVal);
+    if (isNaN(newId) || newId < 1) { showToast('⚠ เลขที่ต้องเป็นตัวเลขบวก'); return; }
+    if (newId !== editingId && defectsData.some(d => d.id === newId)) { showToast('⚠ เลขที่ ' + newId + ' มีอยู่แล้ว'); return; }
+    if (!location) { showToast('⚠ กรุณากรอก Zone / ตำแหน่ง'); return; }
+    if (!team)     { showToast('⚠ กรุณาเลือกทีมแก้ไข'); return; }
+    if (!details)  { showToast('⚠ กรุณากรอกรายการที่ต้องแก้'); return; }
+    const idx = defectsData.findIndex(x => x.id === editingId);
+    if (idx !== -1) defectsData[idx] = { ...defectsData[idx], id: newId, image: editImageDataURL, location, details, team, remarks };
+    defectsData.sort((a, b) => a.id - b.id);
+    saveToLocal(defectsData);
+    closeEditModal();
+    renderList();
+    setSyncStatus('idle');
+    showToast('✓ แก้ไขสำเร็จ');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════════════════════════════
+let deletingId = null;
+function openConfirmModal(id) { deletingId = id; document.getElementById('confirmModal').classList.add('open'); }
+function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); deletingId = null; }
+function confirmDelete() {
+    if (deletingId === null) return;
+    defectsData = defectsData.filter(x => x.id !== deletingId);
+    saveToLocal(defectsData);
+    // Go back a page if current page is now empty
+    const total = Math.ceil(defectsData.length / PAGE_SIZE);
+    if (currentPage > total && total > 0) currentPage = total;
+    closeConfirmModal();
+    updateBadge();
+    renderList();
+    setSyncStatus('idle');
+    showToast('🗑 ลบรายการแล้ว');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PDF EXPORT
+// ══════════════════════════════════════════════════════════════════
+async function ensureFontsLoaded() { if (document.fonts && document.fonts.ready) await document.fonts.ready; }
+function loadImageEl(src) { return new Promise((res,rej) => { const img=new Image(); img.onload=()=>res(img); img.onerror=()=>rej(); img.src=src; }); }
 function drawCover(ctx, img, x, y, w, h) {
-    const iR = img.width/img.height, bR = w/h;
+    const iR=img.width/img.height, bR=w/h;
     let sx,sy,sw,sh;
-    if (iR>bR){sh=img.height;sw=sh*bR;sx=(img.width-sw)/2;sy=0;}
+    if(iR>bR){sh=img.height;sw=sh*bR;sx=(img.width-sw)/2;sy=0;}
     else{sw=img.width;sh=sw/bR;sx=0;sy=(img.height-sh)/2;}
     ctx.drawImage(img,sx,sy,sw,sh,x,y,w,h);
 }
-function drawWrappedText(ctx,text,x,y,maxW,lineHeight,maxLines){
-    const words=text.split(/(\s+)/); const lines=[]; let current='';
+function drawWrappedText(ctx, text, x, y, maxW, lineHeight, maxLines) {
+    const words=text.split(/(\s+)/);const lines=[];let current='';
     for(const word of words){
         const test=current+word;
         if(ctx.measureText(test).width<=maxW){current=test;}
         else{
-            if(current)lines.push(current.trim());
-            current=word;
+            if(current)lines.push(current.trim());current=word;
             if(lines.length>=maxLines-1){
                 let t=current;
                 while(t.length>0&&ctx.measureText(t+'…').width>maxW)t=t.slice(0,-1);
-                lines.push(t+'…'); current=''; break;
+                lines.push(t+'…');current='';break;
             }
         }
     }
     if(current.trim()&&lines.length<maxLines)lines.push(current.trim());
-    lines.forEach((line,i)=>{ctx.fillText(line,x,y+i*lineHeight);});
+    lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lineHeight));
     return lines.length;
 }
 function roundRect(ctx,x,y,w,h,r,fill,stroke){
-    ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
-    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);
-    ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+    ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
     if(fill)ctx.fill();if(stroke)ctx.stroke();
 }
 
 async function exportPDF() {
-    if (defectsData.length===0){showToast('ไม่มีข้อมูล');return;}
+    if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
+    document.getElementById('loadingText').textContent = 'กำลังสร้าง PDF...';
+    document.getElementById('loadingSub').textContent  = 'รายการ 0/' + defectsData.length;
     document.getElementById('loadingOverlay').classList.add('show');
     try {
         await ensureFontsLoaded();
-        const {jsPDF}=window.jspdf;
+        const { jsPDF } = window.jspdf;
         const DPI=150,MM2PX=DPI/25.4,PW_MM=210,PH_MM=297;
         const PW=Math.round(PW_MM*MM2PX),PH=Math.round(PH_MM*MM2PX);
         const MARGIN=Math.round(12*MM2PX),COL_GAP=Math.round(5*MM2PX);
         const COL_W=Math.round((PW_MM-12*2-5)/2*MM2PX);
-        const CARD_H=Math.round(72*MM2PX),IMG_H=Math.round(43*MM2PX),NUM_W=Math.round(8*MM2PX);
-        const TBL_H=CARD_H-IMG_H,ROW_H=Math.round(TBL_H/3);
-        const LABEL_W=Math.round(COL_W*.27),CARD_GAP=Math.round(5*MM2PX);
-        const HEADER_H=Math.round(26*MM2PX),ITEMS_PAGE=6;
-        const THAI_FONT=`'Sarabun','Noto Sans Thai',sans-serif`;
+        const CARD_H=Math.round(72*MM2PX),IMG_H=Math.round(43*MM2PX);
+        const NUM_W=Math.round(8*MM2PX),TBL_H=CARD_H-IMG_H,ROW_H=Math.round(TBL_H/3);
+        const LABEL_W=Math.round(COL_W*0.27),CARD_GAP=Math.round(5*MM2PX),HEADER_H=Math.round(26*MM2PX);
+        const ITEMS_PAGE=6,THAI_FONT=`'Sarabun','Noto Sans Thai',sans-serif`;
         const sortedData=[...defectsData].sort((a,b)=>a.id-b.id);
         const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
         const totalPages=Math.ceil(sortedData.length/ITEMS_PAGE);
@@ -1017,66 +1401,46 @@ async function exportPDF() {
 
         for(let pageIdx=0;pageIdx<totalPages;pageIdx++){
             if(pageIdx>0)pdf.addPage();
+            document.getElementById('loadingSub').textContent = `หน้า ${pageIdx+1}/${totalPages}`;
             const pageItems=sortedData.slice(pageIdx*ITEMS_PAGE,(pageIdx+1)*ITEMS_PAGE);
             const canvas=document.createElement('canvas');
             canvas.width=PW;canvas.height=PH;
             const ctx=canvas.getContext('2d');
             ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,PW,PH);
-            ctx.textAlign='center';ctx.fillStyle='#B9B7B4';
-            ctx.font=`${Math.round(6.5*MM2PX*.352778)}px ${THAI_FONT}`;
-            let hy=MARGIN+Math.round(5*MM2PX);
-            ctx.fillText('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP',PW/2,hy);
-            hy+=Math.round(7*MM2PX);ctx.fillStyle='#1A1916';
-            ctx.font=`700 ${Math.round(15*MM2PX*.352778)}px ${THAI_FONT}`;
-            ctx.fillText('Defect Report',PW/2,hy);
-            hy+=Math.round(5*MM2PX);ctx.fillStyle='#9B9B9B';
-            ctx.font=`${Math.round(7.5*MM2PX*.352778)}px ${THAI_FONT}`;
-            ctx.fillText(`ออกรายงานวันที่ ${dateStr}  —  รวม ${sortedData.length} รายการ`,PW/2,hy);
-            hy+=Math.round(4*MM2PX);ctx.fillStyle='#C3C3C3';
-            ctx.font=`${Math.round(6.5*MM2PX*.352778)}px ${THAI_FONT}`;
-            ctx.fillText(`หน้า ${pageIdx+1} / ${totalPages}`,PW/2,hy);
+            ctx.textAlign='center';
+            ctx.fillStyle='#B9B7B4';ctx.font=`${Math.round(6.5*MM2PX*0.352778)}px ${THAI_FONT}`;
+            let hy=MARGIN+Math.round(5*MM2PX);ctx.fillText('KS CONSTRUCTION KHONKAEN LIMITED PARTNERSHIP',PW/2,hy);
+            hy+=Math.round(7*MM2PX);ctx.fillStyle='#1A1916';ctx.font=`700 ${Math.round(15*MM2PX*0.352778)}px ${THAI_FONT}`;ctx.fillText('Defect Report',PW/2,hy);
+            hy+=Math.round(5*MM2PX);ctx.fillStyle='#9B9B9B';ctx.font=`${Math.round(7.5*MM2PX*0.352778)}px ${THAI_FONT}`;ctx.fillText(`ออกรายงานวันที่ ${dateStr}  —  รวม ${sortedData.length} รายการ`,PW/2,hy);
+            hy+=Math.round(4*MM2PX);ctx.fillStyle='#C3C3C3';ctx.font=`${Math.round(6.5*MM2PX*0.352778)}px ${THAI_FONT}`;ctx.fillText(`หน้า ${pageIdx+1} / ${totalPages}`,PW/2,hy);
             const gridTop=MARGIN+HEADER_H;
-
             for(let i=0;i<pageItems.length;i++){
-                const d=pageItems[i],col=i%2,row=Math.floor(i/2);
-                const cx=MARGIN+col*(COL_W+COL_GAP),cy=gridTop+row*(CARD_H+CARD_GAP);
-                ctx.strokeStyle='#D7D4CF';ctx.lineWidth=1;
-                roundRect(ctx,cx,cy,COL_W,CARD_H,6,false,true);
+                const d=pageItems[i];const col=i%2;const row=Math.floor(i/2);
+                const cx=MARGIN+col*(COL_W+COL_GAP);const cy=gridTop+row*(CARD_H+CARD_GAP);
+                ctx.strokeStyle='#D7D4CF';ctx.lineWidth=1;roundRect(ctx,cx,cy,COL_W,CARD_H,6,false,true);
                 ctx.fillStyle='#1A1916';ctx.fillRect(cx,cy,NUM_W,IMG_H);
-                ctx.fillStyle='#FFFFFF';ctx.font=`700 ${Math.round(9*MM2PX*.352778)}px ${THAI_FONT}`;
-                ctx.textAlign='center';ctx.textBaseline='middle';
-                ctx.fillText(String(d.id),cx+NUM_W/2,cy+IMG_H/2);
+                ctx.fillStyle='#FFFFFF';ctx.font=`700 ${Math.round(9*MM2PX*0.352778)}px ${THAI_FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(d.id),cx+NUM_W/2,cy+IMG_H/2);
                 const imgX=cx+NUM_W,imgW=COL_W-NUM_W;
                 ctx.save();ctx.beginPath();ctx.rect(imgX,cy,imgW,IMG_H);ctx.clip();
-                if(d.image){try{const img=await loadImageEl(d.image);drawCover(ctx,img,imgX,cy,imgW,IMG_H);}
-                catch{ctx.fillStyle='#EBEBEB';ctx.fillRect(imgX,cy,imgW,IMG_H);}}
+                if(d.image){try{const img=await loadImageEl(d.image);drawCover(ctx,img,imgX,cy,imgW,IMG_H);}catch{ctx.fillStyle='#EBEBEB';ctx.fillRect(imgX,cy,imgW,IMG_H);}}
                 else{ctx.fillStyle='#EBEBEB';ctx.fillRect(imgX,cy,imgW,IMG_H);}
                 ctx.restore();
-                ctx.strokeStyle='#D7D4CF';ctx.lineWidth=.8;
-                ctx.beginPath();ctx.moveTo(cx,cy+IMG_H);ctx.lineTo(cx+COL_W,cy+IMG_H);ctx.stroke();
-                const fields=[{label:'ตำแหน่ง',value:d.location},{label:'ทีม',value:d.team},
-                    {label:'รายการ',value:d.details+(d.remarks?' / '+d.remarks:'')}];
-                const lfs=Math.round(5.5*MM2PX*.352778),vfs=Math.round(6.8*MM2PX*.352778);
+                ctx.strokeStyle='#D7D4CF';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(cx,cy+IMG_H);ctx.lineTo(cx+COL_W,cy+IMG_H);ctx.stroke();
+                const fields=[{label:'ตำแหน่ง',value:d.location},{label:'ทีม',value:d.team},{label:'รายการ',value:d.details+(d.remarks?' / '+d.remarks:'')}];
+                const lfs=Math.round(5.5*MM2PX*0.352778),vfs=Math.round(6.8*MM2PX*0.352778);
                 fields.forEach((f,fi)=>{
                     const ry=cy+IMG_H+fi*ROW_H;
-                    if(fi>0){ctx.strokeStyle='#E4E1DC';ctx.lineWidth=.6;ctx.beginPath();
-                        ctx.moveTo(cx,ry);ctx.lineTo(cx+COL_W,ry);ctx.stroke();}
-                    ctx.strokeStyle='#E4E1DC';ctx.lineWidth=.6;ctx.beginPath();
-                    ctx.moveTo(cx+LABEL_W,ry);ctx.lineTo(cx+LABEL_W,ry+ROW_H);ctx.stroke();
+                    if(fi>0){ctx.strokeStyle='#E4E1DC';ctx.lineWidth=0.6;ctx.beginPath();ctx.moveTo(cx,ry);ctx.lineTo(cx+COL_W,ry);ctx.stroke();}
+                    ctx.strokeStyle='#E4E1DC';ctx.lineWidth=0.6;ctx.beginPath();ctx.moveTo(cx+LABEL_W,ry);ctx.lineTo(cx+LABEL_W,ry+ROW_H);ctx.stroke();
                     ctx.fillStyle='#F8FAFF';ctx.fillRect(cx+LABEL_W+1,ry+1,COL_W-LABEL_W-2,ROW_H-2);
-                    ctx.fillStyle='#A5A29D';ctx.font=`${lfs}px ${THAI_FONT}`;
-                    ctx.textAlign='left';ctx.textBaseline='middle';
-                    ctx.fillText(f.label,cx+3,ry+ROW_H/2);
+                    ctx.fillStyle='#A5A29D';ctx.font=`${lfs}px ${THAI_FONT}`;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(f.label,cx+3,ry+ROW_H/2);
                     ctx.fillStyle='#1A1916';ctx.font=`${vfs}px ${THAI_FONT}`;
                     const vx=cx+LABEL_W+4,maxVW=COL_W-LABEL_W-8;
-                    if(fi===2){const lh=Math.round(3.5*MM2PX*.352778);ctx.textBaseline='top';
-                        drawWrappedText(ctx,f.value,vx,ry+3,maxVW,lh,2);}
-                    else{ctx.textBaseline='middle';let disp=f.value;
-                        while(disp.length>1&&ctx.measureText(disp).width>maxVW)disp=disp.slice(0,-1);
-                        if(disp!==f.value)disp=disp.slice(0,-1)+'…';ctx.fillText(disp,vx,ry+ROW_H/2);}
+                    if(fi===2){const lh=Math.round(3.5*MM2PX*0.352778);ctx.textBaseline='top';drawWrappedText(ctx,f.value,vx,ry+3,maxVW,lh,2);}
+                    else{ctx.textBaseline='middle';let disp=f.value;while(disp.length>1&&ctx.measureText(disp).width>maxVW)disp=disp.slice(0,-1);if(disp!==f.value)disp=disp.slice(0,-1)+'…';ctx.fillText(disp,vx,ry+ROW_H/2);}
                 });
             }
-            const imgData=canvas.toDataURL('image/jpeg',.92);
+            const imgData=canvas.toDataURL('image/jpeg',0.92);
             pdf.addImage(imgData,'JPEG',0,0,PW_MM,PH_MM);
         }
         const pdfBlob=pdf.output('blob');
@@ -1084,10 +1448,10 @@ async function exportPDF() {
         const fileName=`Defect_Report_${Date.now()}.pdf`;
         document.getElementById('loadingOverlay').classList.remove('show');
         openPdfPreview(pdfUrl,fileName,pdf);
-    } catch(err){
-        console.error(err);
+    } catch(err) {
+        console.error('PDF error',err);
         document.getElementById('loadingOverlay').classList.remove('show');
-        showToast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+        showToast('❌ เกิดข้อผิดพลาด');
     }
 }
 
@@ -1108,33 +1472,26 @@ function downloadCurrentPdf(){
     if(_currentPdfObj){_currentPdfObj.save(_currentPdfName);showToast('✓ ดาวน์โหลด PDF สำเร็จ');}
 }
 
-// ════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
 // EXCEL EXPORT
-// ════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
 function convertToPng(dataURL){
     return new Promise(resolve=>{
         const img=new Image();
-        img.onload=()=>{
-            const c=document.createElement('canvas');
-            c.width=img.width;c.height=img.height;
-            c.getContext('2d').drawImage(img,0,0);
-            resolve(c.toDataURL('image/png').split('base64,')[1]);
-        };
-        img.onerror=()=>resolve(null);
-        img.src=dataURL;
+        img.onload=()=>{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);resolve(c.toDataURL('image/png').split('base64,')[1]);};
+        img.onerror=()=>resolve(null);img.src=dataURL;
     });
 }
 
-async function exportExcel(){
-    if(defectsData.length===0){showToast('ไม่มีข้อมูล');return;}
+async function exportExcel() {
+    if (defectsData.length === 0) { showToast('ไม่มีข้อมูล'); return; }
+    document.getElementById('loadingText').textContent = 'กำลังสร้าง Excel...';
+    document.getElementById('loadingSub').textContent  = 'รายการ 0/' + defectsData.length;
     document.getElementById('loadingOverlay').classList.add('show');
-    try{
+    try {
         const workbook=new ExcelJS.Workbook();
         workbook.creator='KS Construction';workbook.created=new Date();
-        const sheet=workbook.addWorksheet('รายงาน Defect',{
-            views:[{showGridLines:false}],
-            pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0}
-        });
+        const sheet=workbook.addWorksheet('รายงาน Defect',{views:[{showGridLines:false}],pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0}});
         const ROW_H_PT=150;
         sheet.columns=[
             {header:'ลำดับ',key:'id',width:7},
@@ -1154,7 +1511,8 @@ async function exportExcel(){
         });
         const sortedData=[...defectsData].sort((a,b)=>a.id-b.id);
         for(let index=0;index<sortedData.length;index++){
-            const d=sortedData[index],rowIndex=index+2;
+            document.getElementById('loadingSub').textContent=`รายการ ${index+1}/${sortedData.length}`;
+            const d=sortedData[index];const rowIndex=index+2;
             const row=sheet.getRow(rowIndex);row.height=ROW_H_PT;
             row.getCell('A').value=d.id;
             row.getCell('C').value=d.location;
@@ -1171,8 +1529,7 @@ async function exportExcel(){
             ['A','B','C','D','E','F','G'].forEach(col=>{
                 const cell=row.getCell(col);
                 cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};
-                cell.border={top:{style:'thin',color:{argb:'FFE0E0E0'}},left:{style:'thin',color:{argb:'FFE0E0E0'}},
-                    bottom:{style:'thin',color:{argb:'FFE0E0E0'}},right:{style:'thin',color:{argb:'FFE0E0E0'}}};
+                cell.border={top:{style:'thin',color:{argb:'FFE0E0E0'}},left:{style:'thin',color:{argb:'FFE0E0E0'}},bottom:{style:'thin',color:{argb:'FFE0E0E0'}},right:{style:'thin',color:{argb:'FFE0E0E0'}}};
             });
             if(d.image){
                 try{
@@ -1181,7 +1538,7 @@ async function exportExcel(){
                         const imageId=workbook.addImage({base64:pngBase64,extension:'png'});
                         sheet.addImage(imageId,{tl:{col:1,row:rowIndex-1},br:{col:2,row:rowIndex},editAs:'oneCell'});
                     }
-                }catch(imgErr){console.warn('Image embed failed for DEF',d.id,imgErr);}
+                }catch(imgErr){console.warn('Img embed fail',imgErr);}
             }
         }
         sheet.views=[{state:'frozen',xSplit:0,ySplit:1,showGridLines:false}];
@@ -1190,154 +1547,32 @@ async function exportExcel(){
         saveAs(blob,`Defect_Report_${Date.now()}.xlsx`);
         document.getElementById('loadingOverlay').classList.remove('show');
         showToast('✓ ดาวน์โหลด Excel สำเร็จ');
-    }catch(error){
-        console.error(error);
+    }catch(err){
+        console.error('Excel error',err);
         document.getElementById('loadingOverlay').classList.remove('show');
         showToast('❌ เกิดข้อผิดพลาดในการสร้าง Excel');
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-// EDIT MODAL
-// ════════════════════════════════════════════════════════════════
-function checkEditDuplicateId(){
-    const val=parseInt(document.getElementById('editDefectNumber').value);
-    const warn=document.getElementById('editIdWarning');
-    warn.classList.toggle('show',val&&defectsData.some(d=>d.id===val&&d.id!==editingId));
-}
-function openEditModal(id){
-    const d=defectsData.find(x=>x.id===id); if(!d)return;
-    editingId=id; editImageDataURL=d.image;
-    document.getElementById('editModalTitle').textContent=`DEF — ${String(id).padStart(3,'0')}`;
-    document.getElementById('editDefectNumber').value=d.id;
-    document.getElementById('editLocation').value=d.location;
-    document.getElementById('editDetails').value=d.details;
-    document.getElementById('editRemarks').value=d.remarks||'';
-    document.getElementById('editCustomTeamInput').value='';
-    document.getElementById('editIdWarning').classList.remove('show');
-    const prev=document.getElementById('editImagePreview'),ph=document.getElementById('editUploadPlaceholder');
-    const rmv=document.getElementById('editRemoveImgBtn'),area=document.getElementById('editUploadArea');
-    if(d.image){prev.src=d.image;prev.style.display='block';ph.style.display='none';
-        rmv.style.display='flex';area.classList.add('has-image');}
-    else{prev.src='';prev.style.display='none';ph.style.display='flex';
-        rmv.style.display='none';area.classList.remove('has-image');}
-    document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>t.classList.remove('selected'));
-    document.getElementById('editCustomTeamWrap').classList.remove('open');
-    editIsCustomTeam=false;
-    const presets=['ช่างทาสี','ช่างปูน/โครงสร้าง','ช่างไฟฟ้า','ช่างประปา','ช่างฝ้า/เพดาน','ช่างกระเบื้อง'];
-    if(presets.includes(d.team)){
-        editSelectedTeam=d.team;
-        document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>{
-            const m=t.getAttribute('onclick').match(/'([^']+)'/);
-            if(m&&m[1]===d.team)t.classList.add('selected');
-        });
-    }else{
-        editIsCustomTeam=true;editSelectedTeam=null;
-        document.getElementById('editCustomTeamInput').value=d.team;
-        document.getElementById('editCustomTeamWrap').classList.add('open');
-        document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>{
-            if(t.textContent.trim()==='อื่นๆ ...')t.classList.add('selected');
-        });
-    }
-    document.getElementById('editModal').classList.add('open');
-}
-function closeEditModal(){document.getElementById('editModal').classList.remove('open');editingId=null;}
-function closeEditOnOverlay(e){if(e.target===document.getElementById('editModal'))closeEditModal();}
-function selectEditTeam(el,value){
-    document.querySelectorAll('#editTeamTags .team-tag').forEach(t=>t.classList.remove('selected'));
-    el.classList.add('selected');
-    if(value==='__other__'){editIsCustomTeam=true;editSelectedTeam=null;
-        document.getElementById('editCustomTeamWrap').classList.add('open');
-        setTimeout(()=>document.getElementById('editCustomTeamInput').focus(),50);}
-    else{editIsCustomTeam=false;editSelectedTeam=value;document.getElementById('editCustomTeamWrap').classList.remove('open');}
-}
-function getEditTeam(){return editIsCustomTeam?document.getElementById('editCustomTeamInput').value.trim():editSelectedTeam;}
-function editPreviewImage(event){
-    const file=event.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=e=>{
-        editImageDataURL=e.target.result;
-        const prev=document.getElementById('editImagePreview');
-        prev.src=editImageDataURL;prev.style.display='block';
-        document.getElementById('editUploadPlaceholder').style.display='none';
-        document.getElementById('editRemoveImgBtn').style.display='flex';
-        document.getElementById('editUploadArea').classList.add('has-image');
-    };
-    reader.readAsDataURL(file);
-}
-function clearEditImage(e){
-    e.stopPropagation();editImageDataURL=null;
-    ['editPhotoInputCamera','editPhotoInputGallery'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('editImagePreview').style.display='none';
-    document.getElementById('editImagePreview').src='';
-    document.getElementById('editUploadPlaceholder').style.display='flex';
-    document.getElementById('editRemoveImgBtn').style.display='none';
-    document.getElementById('editUploadArea').classList.remove('has-image');
-}
-async function saveEdit(){
-    const newIdVal=document.getElementById('editDefectNumber').value.trim();
-    const location=document.getElementById('editLocation').value.trim();
-    const details=document.getElementById('editDetails').value.trim();
-    const team=getEditTeam();
-    const remarks=document.getElementById('editRemarks').value.trim();
-    if(!editImageDataURL){showToast('⚠ กรุณาเลือกรูปภาพ');return;}
-    if(!newIdVal){showToast('⚠ กรุณากรอกเลขที่ Defect');return;}
-    const newId=parseInt(newIdVal);
-    if(isNaN(newId)||newId<1){showToast('⚠ เลขที่ต้องเป็นตัวเลขบวก');return;}
-    if(newId!==editingId&&defectsData.some(d=>d.id===newId)){showToast('⚠ เลขที่ '+newId+' มีอยู่แล้ว');return;}
-    if(!location){showToast('⚠ กรุณากรอก Zone / ตำแหน่ง');return;}
-    if(!team){showToast('⚠ กรุณาเลือกทีมแก้ไข');return;}
-    if(!details){showToast('⚠ กรุณากรอกรายการที่ต้องแก้');return;}
-
-    setSyncState('syncing','กำลังบันทึก...');
-    const idx=defectsData.findIndex(x=>x.id===editingId);
-    const oldId=editingId;
-    if(idx!==-1){
-        defectsData[idx]={...defectsData[idx],id:newId,image:editImageDataURL,location,details,team,remarks};
-    }
-    defectsData.sort((a,b)=>a.id-b.id);
-
-    // If ID changed, delete old key
-    if(newId!==oldId) await storageDelete(STORAGE_PREFIX+oldId);
-    await saveOneToStorage(defectsData.find(x=>x.id===newId));
-    _lastIndexStr=JSON.stringify(defectsData.map(x=>x.id));
-    setSyncState('ok','LIVE');
-
-    closeEditModal();
-    updateUI();
-    showToast('✓ แก้ไขสำเร็จ');
+// ══════════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════════
+function showToast(msg) {
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// ── DELETE ──
-function openConfirmModal(id){deletingId=id;document.getElementById('confirmModal').classList.add('open');}
-function closeConfirmModal(){document.getElementById('confirmModal').classList.remove('open');deletingId=null;}
-async function confirmDelete(){
-    if(deletingId===null)return;
-    setSyncState('syncing','กำลังลบ...');
-    const id=deletingId;
-    await deleteOneFromStorage(id);
-    defectsData=defectsData.filter(x=>x.id!==id);
-    _lastIndexStr=JSON.stringify(defectsData.map(x=>x.id));
-    setSyncState('ok','LIVE');
-    closeConfirmModal();
-    updateUI();
-    showToast('🗑 ลบรายการแล้ว');
-}
-
-// ── TOAST ──
-function showToast(msg){
-    const toast=document.getElementById('toast');
-    toast.textContent=msg;toast.classList.add('show');
-    setTimeout(()=>toast.classList.remove('show'),2800);
-}
-
-// ════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
 // INIT
-// ════════════════════════════════════════════════════════════════
-(async function init(){
-    await loadAllFromStorage();
-    updateUI();
-    startPolling();
+// ══════════════════════════════════════════════════════════════════
+(function init(){
+    updateBadge();
+    renderList();
+    updateStorageUI();
+    // Update sync dot based on whether data exists and was synced
+    const lastSync = localStorage.getItem(LS_SYNC_TIME + projectKey);
+    setSyncStatus(lastSync ? 'ok' : (defectsData.length > 0 ? 'idle' : 'idle'));
 })();
 </script>
 
